@@ -1,8 +1,25 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from dj_rest_auth.serializers import LoginSerializer
+from dj_rest_auth.registration.serializers import RegisterSerializer
+
+class CustomRegisterSerializer(RegisterSerializer):
+    # RegisterSerializer에는 이미 username, password1, password2, email이 있음
+    name = serializers.CharField(required=True, write_only=True)
+
+    def get_cleaned_data(self):
+        data = super().get_cleaned_data()
+        data['name'] = self.validated_data.get('name', '')
+        return data
+
+    def save(self, request):
+        user = super().save(request)
+        user.name = self.cleaned_data.get('name')
+        user.save()
+        return user
 
 class CustomLoginSerializer(LoginSerializer):
+    # 로그인 시 username과 password만 필요하도록 email 필드 제외
     email = None 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -11,12 +28,13 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = get_user_model()
-        fields = ('id', 'username', 'password', 'password_confirm', 'email')
+        fields = ('username', 'password', 'password_confirm', 'name', 'email')
         extra_kwargs = {
             'username': {'required': True},
             'password': {'required': True},
             'password_confirm': {'required': True},
-            'email': {'required': True}  
+            'name': {'required': True},
+            'email': {'required': True}
         }
 
     def validate(self, data):
@@ -31,27 +49,17 @@ class UserSerializer(serializers.ModelSerializer):
             )
 
         # 필수 필드 검증
-        if not data.get('username'):
-            raise serializers.ValidationError(
-                {"username": "Username field is required."}
-            )
-        if not data.get('password'):
-            raise serializers.ValidationError(
-                {"password": "Password field is required."}
-            )
-        if not data.get('password_confirm'):
-            raise serializers.ValidationError(
-                {"password_confirm": "Password confirmation is required."}
-            )
-        if not data.get('email'):
-            raise serializers.ValidationError(
-                {"email": "Email field is required."}
-            )
+        required_fields = ['username', 'password', 'password_confirm', 'name', 'email']
+        for field in required_fields:
+            if not data.get(field):
+                raise serializers.ValidationError(
+                    {field: f"{field.capitalize()} field is required."}
+                )
             
         # 비밀번호 일치 검증
         if data.get('password') != data.get('password_confirm'):
             raise serializers.ValidationError(
-                {"password_confirm": "Passwords do not match."}
+                {"password_confirm": "비밀번호가 일치하지 않습니다."}
             )
 
         return data
@@ -62,6 +70,7 @@ class UserSerializer(serializers.ModelSerializer):
         user = get_user_model().objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
+            pal=validated_data['pal'],
             email=validated_data['email']
         )
         return user

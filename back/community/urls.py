@@ -2,23 +2,18 @@ from django.urls import path
 from . import views
 
 app_name = 'community'
+
 urlpatterns = [
-    # 리뷰 목록 조회
-    path('reviews/', views.index, name='index'),
+    # 게시글 관련 URL
+    path('posts/', views.post_list),
+    path('posts/create/', views.post_create),
+    path('posts/<int:post_pk>/', views.post_detail_update_delete),
+    path('posts/<int:post_pk>/comments/', views.comment_create),
+    path('posts/<int:post_pk>/like/', views.post_like),
     
-    # 리뷰 생성
-    path('reviews/create/', views.create, name='create'),
-    
-    # 리뷰 상세 조회
-    path('reviews/<int:review_pk>/', views.detail, name='detail'),
-    
-    # 댓글 생성
-    path(
-        'reviews/<int:review_pk>/comments/',
-        views.create_comment,
-        name='create_comment',
-    ),
-    
-    # 좋아요 토글
-    path('reviews/<int:review_pk>/like/', views.like, name='like'),
+    # 영화 관련 URL
+    path('movies/', views.movie_list),
+    path('movies/search/', views.movie_search),
+    path('movies/<int:movie_pk>/', views.movie_detail),
+    path('movies/<int:movie_pk>/comments/', views.movie_comment_create),
 ]

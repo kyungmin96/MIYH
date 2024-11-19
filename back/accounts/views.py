@@ -6,11 +6,6 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from .serializers import UserSerializer
 
-# 이 부분은 dj-rest-auth가 대체
-# def signup(request): ...
-# def login(request): ...
-# def logout(request): ...
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def profile(request, username):

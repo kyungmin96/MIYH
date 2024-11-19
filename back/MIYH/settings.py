@@ -78,12 +78,15 @@ CORS_ALLOWED_ORIGINS = [
 SITE_ID = 1
 
 # settings.py
-
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_EMAIL_REQUIRED = False    # 이메일 필드 필수 여부
+# ACCOUNT_EMAIL_REQUIRED = False    # 이메일 필드 필수 여부
 
 REST_AUTH = {
     'LOGIN_SERIALIZER': 'accounts.serializers.CustomLoginSerializer',
+    'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',
 }
 
 REST_FRAMEWORK = {
