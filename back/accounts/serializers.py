@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from dj_rest_auth.serializers import LoginSerializer
 from dj_rest_auth.registration.serializers import RegisterSerializer
+from community.models import Post
 
 class CustomRegisterSerializer(RegisterSerializer):
     # RegisterSerializer에는 이미 username, password1, password2, email이 있음
@@ -74,3 +75,56 @@ class UserSerializer(serializers.ModelSerializer):
             email=validated_data['email']
         )
         return user
+
+class PostListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ('id', 'title', 'content')
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    followers_count = serializers.SerializerMethodField()
+    followings_count = serializers.SerializerMethodField()
+    followers_list = serializers.SerializerMethodField()  # 팔로워 목록 추가
+    posts = serializers.SerializerMethodField()
+    is_me = serializers.SerializerMethodField()
+    is_followed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = get_user_model()
+        fields = ('id', 'username', 'name', 'followers_count', 'followings_count', 
+                 'followers_list', 'posts', 'is_me', 'is_followed')
+
+    def get_followers_count(self, obj):
+        return obj.followers.count()
+
+    def get_followings_count(self, obj):
+        return obj.followings.count()
+
+    def get_followers_list(self, obj):
+    # 팔로워들의 기본 정보와 팔로워 수를 반환
+        return [{
+            'id': follower.id,
+            'username': follower.username,
+            'followers_count': follower.followers.count(),
+            'is_followed': self.context.get('request').user in follower.followers.all() if self.context.get('request') else False
+        } for follower in obj.followers.all()]
+
+    def get_posts(self, obj):
+        posts = Post.objects.filter(user=obj).order_by('-created_at')
+        return [{
+            'id': post.id,
+            'title': post.title,
+            'content_preview': post.content[:100]  # 내용 미리보기 100자
+        } for post in posts]
+
+    def get_is_me(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj == request.user
+        return False
+
+    def get_is_followed(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.followers.filter(pk=request.user.pk).exists()
+        return False
