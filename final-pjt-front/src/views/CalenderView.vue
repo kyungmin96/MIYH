@@ -16,30 +16,12 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import timeGridPlugin from '@fullcalendar/timegrid'
-import poster1 from '../image/TMZ-223.jpg'
-import poster2 from '../image/TMY-104.jpg'
+import { useCounterStore } from '@/stores/counter'
 import RecommendView from '@/components/RecommendView.vue'
 import PopulerView from '@/components/PopulerView.vue'
 
-const events = [
-  {
-    start: '2024-11-18',
-    allDay: true,
-    display: 'background',
-    extendedProps: {
-      imageUrl: poster1
-    }
-  },
-  {
-    start: '2024-11-20',
-    allDay: true,
-    display: 'background',
-    extendedProps: {
-      imageUrl: poster2
-    }
-  }
-]
-
+const store = useCounterStore()
+const events = store.events
 const calendarOptions = ref({
   plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin],
   initialView: 'dayGridMonth',

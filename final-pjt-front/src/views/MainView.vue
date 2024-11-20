@@ -28,14 +28,14 @@ const signup = function () {
 
 <style scoped>
 .container {
+  background-color: #333333;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 60px);
-  padding: 2rem;
   text-align: center;
-  background-color: #1a1a1a; /* 어두운 배경 */
 }
 
 div:first-child {

@@ -1,53 +1,77 @@
+<!-- FollowerList.vue -->
 <template>
   <div class="follower-list">
-    <h1>팔로워 목록</h1>
+    <h1>팔로잉 목록</h1>
     <div class="follower-content">
-      <FollowerLisetitem
-        v-for="fowller in store.fowllers"
-        :key="fowller.name"
-        :fowller="fowller" 
-      />
+      <div v-if="loading" class="loading">
+        Loading...
+      </div>
+      <div v-else-if="followers.length === 0" class="no-followers">
+        팔로워가 없습니다.
+      </div>
+      <div v-else class="followers">
+        <FollowerItem
+          v-for="follower in followers"
+          :key="follower.id"
+          :follower="follower"
+          @unfollow="unfollowUser"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useCounterStore } from '@/stores/counter';
-import FollowerLisetitem from './FollowerLisetitem.vue';
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useCounterStore } from '@/stores/counter'
+import axios from 'axios'
+// import FollowerItem from './FollowerItem.vue'  // 팔로워 아이템 컴포넌트 import
+
+const route = useRoute()
 const store = useCounterStore()
+const loading = ref(true)
+const followers = ref([])
+
+const fetchFollowers = async () => {
+  try {
+    const response = await axios.get(
+      `http://127.0.0.1:8000/api/v1/accounts/profile/${route.params.name}/followers/`,
+      {
+        headers: {
+          Authorization: `Token ${store.token}`
+        }
+      }
+    )
+    followers.value = response.data
+    console.log('팔로워 목록:', response.data)
+  } catch (error) {
+    console.error('팔로워 목록 로드 실패:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const unfollowUser = async (username) => {
+  try {
+    await axios({
+      method: 'DELETE',
+      url: `http://127.0.0.1:8000/api/v1/accounts/profile/${username}/followers/`,
+      headers: {
+        Authorization: `Token ${store.token}`
+      }
+    })
+    await fetchFollowers()
+  } catch (error) {
+    console.error('언팔로우 실패:', error)
+  }
+}
+
+onMounted(() => {
+  if (!store.token) {
+    alert('로그인이 필요한 서비스입니다.')
+    return
+  }
+  fetchFollowers()
+})
 </script>
-
-<style scoped>
-.follower-list {
-  width: 33%;
-  height: 40vh; /* 이전 컴포넌트와 동일한 높이 */
-  border: 1px solid #ccc;
-  padding: 15px;
-}
-
-.follower-content {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  height: calc(80% - 50px); /* h1 높이를 고려하여 조정 */
-  overflow-y: auto; /* 세로 스크롤만 표시 */
-  overflow-x: hidden; /* 가로 스크롤 숨김 */
-}
-
-/* 스크롤바 스타일링 */
-.follower-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.follower-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.follower-content::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-.follower-content::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-</style>

@@ -3,9 +3,9 @@
     <h1>작성 글 목록</h1>
     <div class="write-content">
       <WriteListitem
-        v-for="write in store.writes"
-        :key="write.id"
-        :write="write" 
+        v-for="post in profileData?.posts"
+        :key="post.id"
+        :write="post" 
       />
     </div>
   </div>
@@ -13,8 +13,14 @@
 
 <script setup>
 import WriteListitem from '@/components/WriteListitem.vue';
-import { useCounterStore } from '@/stores/counter';
-const store = useCounterStore()
+import { defineProps } from 'vue';
+
+const props = defineProps({
+  profileData: {
+    type: Object,
+    required: true
+  }
+})
 </script>
 
 <style scoped>

@@ -3,7 +3,7 @@
     <h1>SignUp Page</h1>
     <form @submit.prevent="signUp">
   <div class="form-group">
-    <label for="username">username : </label>
+    <label for="username">ID : </label>
     <input type="text" id="username" v-model.trim="username" placeholder="영문, 숫자 포함 4-12자">
   </div>
 
@@ -13,13 +13,18 @@
   </div>
 
   <div class="form-group">
-    <label for="password_confirm">password confirmation : </label>
-    <input type="password" id="password_confirm" v-model.trim="password_confirm">
+    <label for="password2">password confirmation : </label>
+    <input type="password" id="password2" v-model.trim="password2">
+  </div>
+
+  <div class="form-group">
+    <label for="name">username : </label>
+    <input type="text" id="name" v-model.trim="name" placeholder="영문, 숫자 포함 4-12자">
   </div>
 
   <div class="form-group">
     <label for="email">email : </label>
-    <input type="email" id="email" v-model.trim="email">
+    <input type="email" id="email" v-model.trim="email" placeholder="중복되지 않은 이메일을 사용해 주세요.">
   </div>
   
   <input type="submit" value="SignUp">
@@ -36,8 +41,9 @@ import { useCounterStore } from '@/stores/counter'
 import { useRouter } from 'vue-router';
 const username = ref(null)
 const password1 = ref(null)
-const password_confirm = ref(null)
+const password2 = ref(null)
 const email =ref(null)
+const name =ref(null)
 const router = useRouter()
 const store = useCounterStore()
 
@@ -45,7 +51,8 @@ const signUp = function () {
   const payload = {
     username: username.value,
     password1: password1.value,
-    password_confirm: password_confirm.value,
+    password2: password2.value,
+    name: name.value,
     email:email.value
   }
   store.signUp(payload)

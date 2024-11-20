@@ -1,16 +1,40 @@
 <template>
   <div class="today-movie">
-    <h1>오늘의 선택 영화</h1>
-    <div class="movie-content">
-      <img :src="poster" alt="영화 포스터 1">
+    <h1>오늘의 영화</h1>
+    <div v-if="todayMovie" class="movie-content">
+      <img :src="todayMovie.img" :alt="todayMovie.title">
+    </div>
+    <div v-else class="no-movie">
+      오늘 등록된 영화가 없습니다.
     </div>
   </div>
 </template>
 
 <script setup>
-import poster2 from '../image/TMY-698.jpg'
+import { ref, computed, onMounted } from 'vue';
+import { useCounterStore } from '@/stores/counter';
 
-const poster = poster2
+const store = useCounterStore();
+
+// 오늘 날짜 구하기
+const getCurrentDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// 오늘 날짜의 영화 찾기
+const todayMovie = computed(() => {
+  const today = getCurrentDate();
+  const event = store.events.find(event => event.start === today);
+  if (event) {
+    return store.movies.find(movie => movie.id === event.extendedProps.movieId);
+  }
+  return null;
+});
+
 </script>
 
 <style scoped>
