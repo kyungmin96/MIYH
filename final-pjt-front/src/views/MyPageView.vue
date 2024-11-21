@@ -17,7 +17,7 @@
     <div class="list-con">
       <!-- profileData 전체를 props로 전달 -->
       <WriteList :profileData="profileData" />
-      <!-- <FollowerList :profileData="profileData" /> -->
+      <FollowerList :profileData="profileData" />
       <FollowingList :folloinglist="folloinglist"/>
     </div>
   </div>
@@ -31,9 +31,9 @@ import WriteList from '@/components/WriteList.vue';
 import { ref, watch, onMounted } from 'vue'
 import { useCounterStore } from '@/stores/counter';
 import { useRoute, useRouter } from 'vue-router';
+import FollowingList from '@/components/FollowingList.vue'; 
 import FollowerList from '@/components/FollowerList.vue'
 import axios from 'axios';
-import FollowingList from '@/components/FollowingList.vue';  // 한 번만 import
 
 const store = useCounterStore()
 const route = useRoute()
