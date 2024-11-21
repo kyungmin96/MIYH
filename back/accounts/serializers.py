@@ -84,7 +84,8 @@ class PostListSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     followings_count = serializers.SerializerMethodField()
-    followers_list = serializers.SerializerMethodField()  # 팔로워 목록 추가
+    followers_list = serializers.SerializerMethodField()
+    followings_list = serializers.SerializerMethodField()  # 팔로잉 목록 추가
     posts = serializers.SerializerMethodField()
     is_me = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField()
@@ -92,7 +93,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ('id', 'username', 'name', 'followers_count', 'followings_count', 
-                 'followers_list', 'posts', 'is_me', 'is_followed')
+                 'followers_list', 'followings_list', 'posts', 'is_me', 'is_followed')
 
     def get_followers_count(self, obj):
         return obj.followers.count()
@@ -101,13 +102,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return obj.followings.count()
 
     def get_followers_list(self, obj):
-    # 팔로워들의 기본 정보와 팔로워 수를 반환
         return [{
             'id': follower.id,
             'username': follower.username,
             'followers_count': follower.followers.count(),
             'is_followed': self.context.get('request').user in follower.followers.all() if self.context.get('request') else False
         } for follower in obj.followers.all()]
+
+    def get_followings_list(self, obj):
+        return [{
+            'id': following.id,
+            'username': following.username,
+            'followers_count': following.followers.count(),
+            'is_followed': self.context.get('request').user in following.followers.all() if self.context.get('request') else False
+        } for following in obj.followings.all()]
 
     def get_posts(self, obj):
         posts = Post.objects.filter(user=obj).order_by('-created_at')

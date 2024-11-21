@@ -46,14 +46,13 @@ class PostSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)  # 댓글 개수 추가
     like_users_count = serializers.IntegerField(source='like_users.count', read_only=True)
     is_liked = serializers.SerializerMethodField()
-    movie_detail = MovieSerializer(source='movie', read_only=True)
     created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M", read_only=True)  # 날짜 포맷 지정
     updated_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M", read_only=True)  # 날짜 포맷 지정
 
     class Meta:
         model = Post
         fields = ('id', 'user', 'title', 'category', 'content', 'image',
-                 'movie', 'movie_detail', 'rank', 'comments', 'comments_count',
+                  'comments', 'comments_count',
                  'created_at', 'updated_at', 'like_users_count', 'is_liked')
         read_only_fields = ('like_users_count', 'comments_count')
 
@@ -63,13 +62,3 @@ class PostSerializer(serializers.ModelSerializer):
             return obj.like_users.filter(pk=request.user.pk).exists()
         return False
         
-    def validate(self, data):
-        if data.get('category') == 'review':
-            if not data.get('movie'):
-                raise serializers.ValidationError("리뷰 작성 시 영화를 선택해야 합니다.")
-            if not data.get('rank'):
-                raise serializers.ValidationError("리뷰 작성 시 평점을 입력해야 합니다.")
-        elif data.get('category') == 'talk':  # 잡담일 경우 movie와 rank가 없어야 함
-            if data.get('movie') or data.get('rank'):
-                raise serializers.ValidationError("잡담 게시글에는 영화와 평점을 입력할 수 없습니다.")
-        return data

@@ -12,14 +12,17 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
 # .env 파일에서 환경 변수 로드
-# load_dotenv()
+load_dotenv()
 
 # 환경 변수에서 API 키 가져오기
 # TMDB_API_KEY = os.getenv('TMDB_API_KEY')
 TMDB_API_KEY= 'c11b954d03d7485da9f105b516b20c07'
+# API Keys
+OPENWEATHER_API_KEY = 'dfc0c2cf38985a74141d64747691501a'
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 

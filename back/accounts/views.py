@@ -14,34 +14,15 @@ def profile(request, username):
     serializer = UserProfileSerializer(person, context={'request': request})
     return Response(serializer.data)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def followers_list(request, username):
-    User = get_user_model()
-    person = get_object_or_404(User, username=username)
-    followers = person.followers.all()
-    
-    # 각 팔로워의 상세 정보를 포함한 리스트 생성
-    followers_data = []
-    for follower in followers:
-        followers_data.append({
-            'id': follower.id,
-            'username': follower.username,
-            'followers_count': follower.followers.count(),
-            'is_followed': request.user in follower.followers.all()
-        })
-    
-    return Response(followers_data)
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def follow(request, user_pk):
+def follow(request, username):
     User = get_user_model()
-    you = get_object_or_404(User, pk=user_pk)
+    you = get_object_or_404(User, username=username)  # name을 username으로 수정
     me = request.user
     
     if you != me:
-        if you.followers.filter(pk=me.pk).exists():
+        if you.followers.filter(username=me.username).exists():  # name을 username으로 수정
             you.followers.remove(me)
             is_followed = False
         else:

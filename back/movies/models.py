@@ -7,6 +7,8 @@ class MovieCalendar(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
     date = models.DateField()
+    # latitude = models.FloatField(null=True)  # 위치 정보 추가
+    # longitude = models.FloatField(null=True)
     
     class Meta:
         unique_together = ('user', 'date')
