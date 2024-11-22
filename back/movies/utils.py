@@ -6,25 +6,49 @@ from django.conf import settings
 import random
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
+tmdb_api_key = settings.TMDB_API_KEY
+
+def is_adult_movie(movie_id):
+    """
+    Check if a movie is adult based on certification.
+    """
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}/release_dates"
+    params = {"api_key": tmdb_api_key}
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            for result in data.get("results", []):
+                # Check for Korean (KR) certification
+                if result['iso_3166_1'] == 'KR':
+                    for release in result['release_dates']:
+                        if release['certification'] == '청소년관람불가':
+                            return True
+                # Check for US certification (R or NC-17)
+                if result['iso_3166_1'] == 'US':
+                    for release in result['release_dates']:
+                        if release['certification'] in ['R', 'NC-17']:
+                            return True
+        return False
+    except Exception as e:
+        print(f"Error checking certification: {e}")
+        return False
 
 def get_tmdb_movie(tmdb_id):
-    """TMDB API를 통해 영화 정보 가져오기"""
-    tmdb_api_key = settings.TMDB_API_KEY
+    """
+    TMDB API를 통해 영화 정보 가져오기
+    """
     url = f"https://api.themoviedb.org/3/movie/{tmdb_id}?api_key={tmdb_api_key}&language=ko-KR"
-    
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
             data = response.json()
-            
-            # 성인물 제외
-            if data.get('adult', False):
+            # 인증 등급 기반으로 성인물 제외
+            if is_adult_movie(tmdb_id):
                 return None
-                
             # 한국어 정보가 없는 경우 제외
             if not data.get('title') or not data.get('overview'):
                 return None
-                
             return {
                 'tmdb_id': data['id'],
                 'title': data['title'],
@@ -173,70 +197,122 @@ def fetch_recommended_movies(weather, season, time_of_day, previous_tmdb_ids, ho
     return None, None
 
 def fetch_popular_movie(previous_tmdb_ids, exclude_tmdb_id=None):
+    """
+    TMDB에서 인기 있는 영화 중 조건을 만족하는 최대 3개의 영화를 캐시에 저장하고,
+    그 중 하나를 랜덤으로 반환. 속도를 개선하기 위해 캐싱을 적극 활용.
+    """
     today = datetime.now().date()
-    cache_key = f'popular_movie_{today}'
-    cached_movie = cache.get(cache_key)
-    
-    if cached_movie:
+    cache_key = f'popular_movies_{today}'  # 공통 캐싱 키
+    cached_movies = cache.get(cache_key)
+
+    # 캐싱된 데이터가 있으면 랜덤으로 하나 선택하여 반환
+    if cached_movies:
         try:
-            movie_id = cached_movie.get('tmdb_id', cached_movie.get('id'))
-            if movie_id and movie_id not in previous_tmdb_ids:
-                return cached_movie
-        except (KeyError, AttributeError):
+            valid_movies = [
+                movie for movie in cached_movies
+                if movie['tmdb_id'] not in previous_tmdb_ids and movie['tmdb_id'] != exclude_tmdb_id
+            ]
+            if valid_movies:
+                return random.choice(valid_movies)
+        except (KeyError, AttributeError, IndexError):
             pass
 
+    # TMDB API에서 인기 영화 목록 가져오기
     popular_movies = get_popular_movies()
-    if not popular_movies:  # API 요청 실패시 재시도
-        attempts = 0
-        while not popular_movies and attempts < 3:
-            popular_movies = get_popular_movies()
-            attempts += 1
-    
-    # 이전에 선택한 영화와 제외할 영화를 필터링
-    available_movies = [
-        movie for movie in popular_movies 
-        if movie['id'] not in previous_tmdb_ids 
-        and movie['id'] != exclude_tmdb_id
-    ]
-    
-    # 사용 가능한 영화들을 순회하면서 적절한 영화 찾기
-    for movie in available_movies:
+    if not popular_movies:
+        return None
+
+    # 조건에 맞는 영화 저장
+    valid_movies = []
+    for movie in popular_movies:
+        if len(valid_movies) >= 3:  # 최대 3개의 영화만 저장
+            break
+
+        # 이전 추천된 영화와 제외할 영화를 필터링
+        if movie['id'] in previous_tmdb_ids or movie['id'] == exclude_tmdb_id:
+            continue
+
+        # TMDB ID로 영화 데이터 가져오기 및 성인물 필터링
         movie_data = get_tmdb_movie(movie['id'])
-        if movie_data:  # 성인물이 아니고 한국어 정보가 있는 영화를 찾으면
-            try:
-                tomorrow = datetime.combine(today + timedelta(days=1), datetime.min.time())
-                cache_timeout = int((tomorrow - datetime.now()).total_seconds())
-                cache.set(cache_key, movie_data, cache_timeout)
-                return movie_data
-            except Exception:
-                continue
-    
-    # 여전히 적절한 영화를 찾지 못했다면, 다른 페이지의 인기 영화 시도
-    if not movie_data:
-        for page in range(2, 4):  # 2~3 페이지까지 시도
-            try:
-                tmdb_api_key = settings.TMDB_API_KEY
-                url = f"https://api.themoviedb.org/3/movie/popular?api_key={tmdb_api_key}&language=ko-KR&page={page}"
-                response = requests.get(url, timeout=5)
-                if response.status_code == 200:
-                    next_page_movies = response.json()['results']
-                    available_movies = [
-                        movie for movie in next_page_movies 
-                        if movie['id'] not in previous_tmdb_ids 
-                        and movie['id'] != exclude_tmdb_id
-                    ]
-                    
-                    for movie in available_movies:
-                        movie_data = get_tmdb_movie(movie['id'])
-                        if movie_data:
-                            try:
-                                tomorrow = datetime.combine(today + timedelta(days=1), datetime.min.time())
-                                cache_timeout = int((tomorrow - datetime.now()).total_seconds())
-                                cache.set(cache_key, movie_data, cache_timeout)
-                                return movie_data
-                            except Exception:
-                                continue
-            except requests.RequestException:
-                continue
-    
+        if movie_data:  # 유효한 영화만 추가
+            valid_movies.append(movie_data)
+
+    # 유효한 영화가 있다면 캐싱하고 반환
+    if valid_movies:
+        # 캐싱 저장 (다음 날 자정까지 유효)
+        tomorrow = datetime.combine(today + timedelta(days=1), datetime.min.time())
+        cache_timeout = int((tomorrow - datetime.now()).total_seconds())
+        cache.set(cache_key, valid_movies, cache_timeout)
+
+        # 랜덤으로 하나 선택하여 반환
+        return random.choice(valid_movies)
+
     return None
+
+# def fetch_popular_movie(previous_tmdb_ids, exclude_tmdb_id=None):
+#     today = datetime.now().date()
+#     cache_key = f'popular_movie_{today}'
+#     cached_movie = cache.get(cache_key)
+    
+#     if cached_movie:
+#         try:
+#             movie_id = cached_movie.get('tmdb_id', cached_movie.get('id'))
+#             if movie_id and movie_id not in previous_tmdb_ids:
+#                 return cached_movie
+#         except (KeyError, AttributeError):
+#             pass
+
+#     popular_movies = get_popular_movies()
+#     if not popular_movies:  # API 요청 실패시 재시도
+#         attempts = 0
+#         while not popular_movies and attempts < 3:
+#             popular_movies = get_popular_movies()
+#             attempts += 1
+    
+#     # 이전에 선택한 영화와 제외할 영화를 필터링
+#     available_movies = [
+#         movie for movie in popular_movies 
+#         if movie['id'] not in previous_tmdb_ids 
+#         and movie['id'] != exclude_tmdb_id
+#     ]
+    
+#     # 사용 가능한 영화들을 순회하면서 적절한 영화 찾기
+#     for movie in available_movies:
+#         movie_data = get_tmdb_movie(movie['id'])
+#         if movie_data:  # 성인물이 아니고 한국어 정보가 있는 영화를 찾으면
+#             try:
+#                 tomorrow = datetime.combine(today + timedelta(days=1), datetime.min.time())
+#                 cache_timeout = int((tomorrow - datetime.now()).total_seconds())
+#                 cache.set(cache_key, movie_data, cache_timeout)
+#                 return movie_data
+#             except Exception:
+#                 continue
+    
+#     # 여전히 적절한 영화를 찾지 못했다면, 다른 페이지의 인기 영화 시도
+#     if not movie_data:
+#         for page in range(2, 4):  # 2~3 페이지까지 시도
+#             try:
+#                 url = f"https://api.themoviedb.org/3/movie/popular?api_key={tmdb_api_key}&language=ko-KR&page={page}"
+#                 response = requests.get(url, timeout=5)
+#                 if response.status_code == 200:
+#                     next_page_movies = response.json()['results']
+#                     available_movies = [
+#                         movie for movie in next_page_movies 
+#                         if movie['id'] not in previous_tmdb_ids 
+#                         and movie['id'] != exclude_tmdb_id
+#                     ]
+                    
+#                     for movie in available_movies:
+#                         movie_data = get_tmdb_movie(movie['id'])
+#                         if movie_data:
+#                             try:
+#                                 tomorrow = datetime.combine(today + timedelta(days=1), datetime.min.time())
+#                                 cache_timeout = int((tomorrow - datetime.now()).total_seconds())
+#                                 cache.set(cache_key, movie_data, cache_timeout)
+#                                 return movie_data
+#                             except Exception:
+#                                 continue
+#             except requests.RequestException:
+#                 continue
+    
+#     return None
