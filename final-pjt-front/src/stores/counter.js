@@ -2,43 +2,46 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
-
+import poster2 from '../image/TMY-104.jpg'
+import poster1 from '../image/TMZ-223.jpg'
 
 export const useCounterStore = defineStore('counter', () => {
-const API_URL = 'http://127.0.0.1:8000'
+  const API_URL = import.meta.env.VITE_APP_API_URL
   const userKey=ref(null)
   const token = ref(null)
   const router = useRouter()
   const currentUser = ref(null)
-  const events = ref(null)
-  const fowllers =ref(null)
+  const userLocation = ref({
+    latitude: null,
+    longitude: null
+  })
+  const events = [
+    {
+      id: 1,
+      title: '인터스텔라',
+      display: 'background',
+      start: '2024-11-01',
+      extendedProps: {
+        imageUrl: poster2
+      }
+    },
+    {
+      id: 2,
+      title: '인셉션',
+      display: 'background',
+      start: '2024-11-05',
+      extendedProps: {
+        imageUrl: poster1
+      }
+    },
+  ];
 
-  const addOrUpdateEvent = (newEvent) => {
-    const existingEventIndex = events.value.findIndex(event => event.start === newEvent.start)
-    
-    if (existingEventIndex !== -1) {
-      events.value[existingEventIndex] = newEvent
-    } else {
-      events.value.push(newEvent)
-    }
-  }
-
-  const removeEvent = (date) => {
-    const eventIndex = events.value.findIndex(event => event.start === date)
-    if (eventIndex !== -1) {
-      events.value.splice(eventIndex, 1)
-    }
-  }
-
-  const addCalendarEvent = (event) => {
-    events.value.push(event)
-  }
   const signUp = function (payload) {
     const { username, password1, password2, email, name } = payload
 
     axios({
       method: 'post',
-      url: 'http://127.0.0.1:8000/api/auth/registration/', // URL 수정
+      url: `${API_URL}/api/auth/registration/`, // URL 수정
       data: {
         username, 
         password1, 
@@ -70,21 +73,48 @@ const API_URL = 'http://127.0.0.1:8000'
   const logIn = function (payload) {
     const { username, password } = payload
 
+    // 위치 정보 가져오기
+    const getCurrentPosition = () => {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation is not supported by this browser.'))
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+          position => resolve(position),
+          error => reject(error),
+          { enableHighAccuracy: true }
+        )
+      })
+    }
+
     axios({
       method: 'post',
-      url: 'http://127.0.0.1:8000/api/auth/login/',
+      url: `${API_URL}/api/auth/login/`,
       data: {
         username, password
       }
     })
-      .then((res) => {
+      .then(async (res) => {
         // 토큰 저장
-        console.log(res.data)
         token.value = res.data.key
-        // 토큰을 사용하여 사용자 정보 요청
+        
+        try {
+          // 위치 정보 가져오기
+          const position = await getCurrentPosition()
+          // store에 위치 정보 저장
+          userLocation.value = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          }
+        } catch (error) {
+          console.error('위치 정보 가져오기 실패:', error)
+        }
+
+        // 사용자 정보 요청
         return axios({
           method: 'get',
-          url: `http://127.0.0.1:8000/api/auth/user/`,
+          url: `${API_URL}/api/auth/user/`,
           headers: {
             Authorization: `Token ${res.data.key}`
           }
@@ -92,19 +122,12 @@ const API_URL = 'http://127.0.0.1:8000'
       })
       .then((userRes) => {
         // 사용자 정보 저장
-        const userId = userRes.data.pk
-        console.log('User ID:', userId)
-        
-        // userKey에 pk 저장
+        const userId = userRes.data.username
         userKey.value = userId
-        
-        // store에 사용자 정보 저장
         currentUser.value = userRes.data
-        
-        // 해당 사용자의 캘린더 페이지로 이동
         router.push({ 
           name: 'calender', 
-          params: { id: userId }
+          params: { userName: userId }
         })
       })
       .catch((err) => {
@@ -116,7 +139,7 @@ const API_URL = 'http://127.0.0.1:8000'
     try {
       await axios({
         method: 'post',
-        url: 'http://127.0.0.1:8000/api/auth/logout/',
+        url: `${API_URL}/api/auth/logout/`,
         headers: {
           Authorization: `Token ${token.value}`
         }
@@ -139,7 +162,7 @@ const API_URL = 'http://127.0.0.1:8000'
  
  
   
-  return {userKey,currentUser,logOut, API_URL,signUp,logIn,fowllers,token,events,addCalendarEvent,addOrUpdateEvent,removeEvent}
+  return {userKey,currentUser,logOut, API_URL,signUp,logIn,token,userLocation,events}
 }, {persist : {
   storage: sessionStorage
 }})

@@ -1,26 +1,24 @@
 <template>
-  <div class="following-item">
-    <div class="following-info">
-      <p class="following-name">{{ follower.username }}</p>
-      <p class="following-email" v-if="follower.email">{{ follower.email }}</p>
+  <div class="follower-item">
+    <div class="follower-avatar">
+      <span>{{ follower.name.charAt(0).toUpperCase() }}</span>
     </div>
-    <div class="following-actions">
-      <button @click="goToProfile" class="profile-btn">프로필</button>
+    <div class="follower-info">
+      <h3 class="follower-name">{{ follower.name }}</h3>
+      <p class="follower-email" v-if="follower.email">{{ follower.email }}</p>
     </div>
+    <button @click="goToProfile" class="profile-btn">
+      프로필
+    </button>
   </div>
 </template>
-
 <script setup>
-import { watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios';
-import { useCounterStore } from '@/stores/counter';
-import { ref } from 'vue';
-const store =useCounterStore()
-const route = useRoute()
+import { watch } from 'vue';
+import { useRouter,useRoute  } from 'vue-router'
+
+const route =useRoute()
 const router = useRouter()
-const profileData=ref()
-// props 정의
+
 const props = defineProps({
   follower: {
     type: Object,
@@ -28,100 +26,103 @@ const props = defineProps({
   }
 })
 
-// emit 정의
-const emit = defineEmits(['unfollow'])
-
-const goToProfile = () => {
-  router.push({
-    name: 'mypage',
-    params: { name: props.follower.username }
-  })
+const goToProfile = async () => {
+  const userName = props.follower.username
+  if (route.name === 'mypage' && route.params.userName === userName) {
+    // 현재 페이지를 새로고침
+    await router.replace({ name: 'mypage', params: { userName } })
+  } else {
+    // 새 페이지로 이동
+    await router.push({ name: 'mypage', params: { userName } })
+  }
 }
 
-// route.params.name이 변경될 때마다 데이터를 다시 불러옴
-watch(
-  () => route.params.name,
-  async (newUsername) => {
-    if (newUsername) {
-      try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/v1/accounts/profile/${newUsername}/`,
-          {
-            headers: {
-              Authorization: `Token ${store.token}`
-            }
-          }
-        )
-        // 새로운 프로필 데이터로 업데이트
-        profileData.value = response.data
-      } catch (error) {
-        console.error('프로필 로드 실패:', error)
-        if (error.response?.status === 404) {
-          alert('존재하지 않는 사용자입니다.')
-          router.push('/')
-        }
-      }
-    }
-  },
-  { immediate: true }
-)
-
-const handleUnfollow = () => {
-  emit('unfollow', props.follower.username)
-}
 </script>
 
 <style scoped>
-.following-item {
+.follower-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px;
+  padding: 15px;
+  background: #242937;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
 }
 
-.following-info {
-  flex-grow: 1;
+.follower-item:hover {
+  transform: translateY(-2px);
+  background: #2a2f3e;
 }
 
-.following-name {
-  font-weight: bold;
-  margin: 0;
-}
-
-.following-email {
-  color: #666;
-  margin: 4px 0 0 0;
-  font-size: 0.9em;
-}
-
-.following-actions {
+.follower-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #dc1a28;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  margin-right: 15px;
+  font-size: 1.2rem;
 }
 
-.profile-btn, .unfollow-btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.follower-info {
+  flex: 1;
+}
+
+.follower-name {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.follower-email {
+  margin: 4px 0 0;
+  color: #9ca3af;
+  font-size: 0.875rem;
 }
 
 .profile-btn {
-  background-color: #4a90e2;
+  padding: 8px 16px;
+  background: #dc1a28;
   color: white;
-}
-
-.unfollow-btn {
-  background-color: #dc3545;
-  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .profile-btn:hover {
-  background-color: #357abd;
+  background: #b91521;
 }
 
-.unfollow-btn:hover {
-  background-color: #c82333;
+@media (max-width: 640px) {
+  .follower-item {
+    padding: 12px;
+  }
+  
+  .follower-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .follower-name {
+    font-size: 0.875rem;
+  }
+  
+  .follower-email {
+    font-size: 0.75rem;
+  }
+  
+  .profile-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
 }
 </style>

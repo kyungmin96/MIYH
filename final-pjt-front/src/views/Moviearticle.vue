@@ -7,19 +7,24 @@
 
 <script setup>
 import MovieList from '@/components/MovieList.vue';
-
-
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-primary: 'Noto Sans KR', sans-serif;
+  --font-secondary: 'Poppins', sans-serif;
+}
+
 h1 {
+  font-family: var(--font-primary);
   font-size: 2.5rem;
   color: #ffffff;
   text-align: center;
   margin: 2rem 0;
   padding: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 3px;
+  letter-spacing: -0.03em;
   font-weight: 700;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   position: relative;
@@ -36,7 +41,7 @@ h1::after {
   transform: translateX(-50%);
   width: 60%;
   height: 3px;
-  background: linear-gradient(to right, transparent, #4a90e2, transparent);
+  background: linear-gradient(to right, transparent, #dc1a28, transparent);
 }
 
 /* 반응형 디자인 */
@@ -44,7 +49,7 @@ h1::after {
   h1 {
     font-size: 2rem;
     margin: 1.5rem 0;
-    letter-spacing: 2px;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -52,7 +57,7 @@ h1::after {
   h1 {
     font-size: 1.8rem;
     margin: 1rem 0;
-    letter-spacing: 1px;
+    letter-spacing: -0.01em;
   }
 }
 </style>

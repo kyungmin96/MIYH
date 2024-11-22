@@ -10,90 +10,108 @@
       <div class="movie-info">
         <div class="movie-header">
           <h1>{{ movie.title }}</h1>
-          <p>{{ movie.original_title }}</p>
+          <p class="original-title">{{ movie.original_title }}</p>
           <div class="movie-meta">
-            <span class="release-date">개봉일: {{ movie.release_date }}</span>
+            <span class="release-date">
+              <i class="fas fa-calendar"></i>
+              개봉일: {{ movie.release_date }}
+            </span>
           </div>
         </div>
         <div class="movie-content">
           <h2>줄거리</h2>
           <p>{{ movie.overview }}</p>
         </div>
-      </div>
+        <div class="calendar-add-section">
+      <button @click="addToCalendarToday" class="calendar-add-btn">
+        <i class="fas fa-calendar-plus"></i>
+        오늘의 영화로 추가 
+      </button>
     </div>
+      </div>
+      
+    </div>
+    
 
     <div class="movie-comment-section">
-      <h2>댓글 ({{ movie.comments_count }})</h2>
+      <div class="section-header">
+        <h2>
+          <i class="fas fa-comments"></i>
+          댓글 ({{ movie.comments_count }})
+        </h2>
+      </div>
+
       <div class="comment-form">
         <div class="comment-input">
           <input 
             type="text" 
             v-model="newComment.text" 
-            placeholder="댓글을 입력하세요"
+            placeholder="영화에 대한 생각을 공유해보세요"
             maxlength="100"
           >
-          <button @click="submitComment">작성</button>
+          <button @click="submitComment">
+            <i class="fas fa-paper-plane"></i>
+            작성
+          </button>
         </div>
       </div>
 
       <div class="comments-list">
-    <div v-if="!movie.comments || movie.comments.length === 0" class="no-comments">
-      첫 댓글을 작성해보세요!
-    </div>
-    <template v-else>
-      <!-- 현재 페이지의 댓글만 표시 -->
-      <div v-for="comment in paginatedComments" :key="comment.id" class="comment-item">
-        <div class="comment-header">
-          <span class="user-name">{{ comment.user.username }}</span>
-          <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
+        <div v-if="!movie.comments || movie.comments.length === 0" class="no-comments">
+          <i class="fas fa-comment-dots"></i>
+          <p>첫 댓글을 작성해보세요!</p>
         </div>
-        <p class="comment-text">{{ comment.content }}</p>
-      </div>
+        <template v-else>
+          <div v-for="comment in paginatedComments" :key="comment.id" class="comment-item">
+            <div class="comment-header">
+              <div class="user-info">
+                <div class="user-avatar">{{ comment.user.name.charAt(0).toUpperCase() }}</div>
+                <span @click="goToCommentUserProfile(comment)" class="user-name">{{ comment.user.name }}</span>
+              </div>
+              <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
+            </div>
+            <p class="comment-text">{{ comment.content }}</p>
+          </div>
 
-      <!-- 페이지네이션 -->
-      <div class="pagination" v-if="totalPages > 1">
-        <button 
-          :disabled="currentPage === 1"
-          @click="currentPage--"
-          class="page-btn"
-        >
-          이전
-        </button>
-        
-        <span class="page-numbers">
-          <button 
-            v-for="page in displayedPages" 
-            :key="page"
-            @click="currentPage = page"
-            :class="['page-number', { active: currentPage === page }]"
-          >
-            {{ page }}
-          </button>
-        </span>
-
-        <button 
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
-          class="page-btn"
-        >
-          다음
-        </button>
-      </div>
-    </template>
+          <div class="pagination" v-if="totalPages > 1">
+  <button 
+    :disabled="currentPage === 1"
+    @click="currentPage--"
+    class="page-btn"
+  >
+    <i class="fas fa-chevron-left"></i>
+  </button>
+  
+  <div class="page-numbers">
+    <button 
+      v-for="page in displayedPages" 
+      :key="page"
+      @click="currentPage = page"
+      :class="['page-number', { active: currentPage === page }]"
+    >
+      {{ page }}
+    </button>
   </div>
 
-    <div class="calendar-add-section">
-      <button @click="addToCalendarToday" class="calendar-add-btn">
-        오늘 날짜로 달력에 추가
-      </button>
+  <button 
+    :disabled="currentPage === totalPages"
+    @click="currentPage++"
+    class="page-btn"
+  >
+    <i class="fas fa-chevron-right"></i>
+  </button>
+</div>
+        </template>
+      </div>
     </div>
-  </div>
+
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted,computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useCounterStore } from '@/stores/counter'
 import axios from 'axios'
 
@@ -105,7 +123,16 @@ const newComment = ref({
 })
 const currentPage = ref(1)
 const commentsPerPage = 10
+const router=useRouter()
 
+const goToCommentUserProfile = (comment) => {
+  if (comment && comment.user) {
+    router.push({
+      name: 'mypage',
+      params: { userName: comment.user.username }
+    })
+  }
+}
 // 페이지네이션된 댓글 목록
 const paginatedComments = computed(() => {
   if (!movie.value?.comments) return []
@@ -153,33 +180,38 @@ const getCurrentDate = () => {
   return `${year}-${month}-${day}`
 }
 
-const addToCalendarToday = () => {
-  const today = getCurrentDate()
-  const newEvent = {
-    start: today,
-    allDay: true,
-    display: 'background',
-    extendedProps: {
-      imageUrl: movie.value.poster_url,
-      movieId: movie.value.id,
-      title: movie.value.title
-    }
-  }
-
+const addToCalendarToday = async () => {
   try {
-    store.addOrUpdateEvent(newEvent)
-    alert('오늘의 영화로 등록되었습니다!')
+    const response = await axios({
+      method: 'post',
+      url: `${store.API_URL}/movies/calendar/${store.currentUser.username}/select/`,
+      headers: {
+        Authorization: `Token ${store.token}`
+      },
+      data: {
+        tmdb_id: movie.value.tmdb_id
+      }
+    })
+
+    if (response.status === 200) {
+      alert('오늘의 영화로 등록되었습니다!')
+    }
   } catch (error) {
-    alert('영화 등록에 실패했습니다.')
+    if (error.response?.status === 403) {
+      alert('자신의 달력에만 영화를 선택할 수 있습니다.')
+    } else if (error.response?.status === 400) {
+      alert(error.response.data.error)
+    } else {
+      alert('영화 등록에 실패했습니다.')
+    }
   }
 }
 
 onMounted(async () => {
   try {
     const movieId = route.params.id
-    const response = await axios.get(`http://127.0.0.1:8000/community/movies/${movieId}/`)
+    const response = await axios.get(`${store.API_URL}/community/movies/${movieId}/`)
     movie.value = response.data
-    console.log('영화 상세 정보:', movie.value)
   } catch (error) {
     console.error('영화 정보 로드 실패:', error)
   }
@@ -199,7 +231,7 @@ const submitComment = async () => {
   try {
     await axios({
       method: 'post',
-      url: `http://127.0.0.1:8000/community/movies/${route.params.id}/comments/`,
+      url: `${store.API_URL}/community/movies/${route.params.id}/comments/`,
       headers: {
         Authorization: `Token ${store.token}`
       },
@@ -209,7 +241,7 @@ const submitComment = async () => {
     })
 
     // 댓글 목록 새로고침
-    const response = await axios.get(`http://127.0.0.1:8000/community/movies/${route.params.id}/`)
+    const response = await axios.get(`${store.API_URL}/community/movies/${route.params.id}/`)
     movie.value = response.data
     
     // 입력 폼 초기화
@@ -224,199 +256,364 @@ const submitComment = async () => {
 
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-primary: 'Noto Sans KR', sans-serif;
+  --font-secondary: 'Poppins', sans-serif;
+}
+
 .movie-detail {
   min-height: 100vh;
-  background-color: #1a1a1a;
-  padding: 2rem;
+  padding: 40px 20px;
+  background: #1a1f2c;
+  font-family: var(--font-primary);
 }
 
 .movie-detail-container {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  gap: 2rem;
-  background: #2d2d2d;
+  gap: 40px;
+  background: #242937;
   border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .movie-poster {
-  flex: 0 0 300px;
+  flex: 0 0 350px;
   position: relative;
 }
 
 .movie-poster img {
   width: 100%;
-  height: 450px;
+  height: 500px;
   object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.new-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: #ff4757;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-weight: bold;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .rating {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(0,0,0,0.7);
-  color: #ffd700;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 1.1rem;
+  top: 15px;
+  left: 15px;
+  background: rgba(220, 26, 40, 0.9);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-secondary);
 }
 
 .movie-info {
   flex: 1;
-  color: #fff;
+  color: #ffffff;
 }
 
 .movie-header h1 {
   font-size: 2.5rem;
-  margin: 0 0 1rem 0;
-  color: #fff;
+  margin: 0 0 10px 0;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.original-title {
+  color: #a0a0a0;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  letter-spacing: -0.01em;
 }
 
 .movie-meta {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  color: #ccc;
-}
-
-.movie-meta span {
-  padding-right: 1rem;
-  border-right: 1px solid #555;
-}
-
-.movie-meta span:last-child {
-  border-right: none;
+  gap: 20px;
+  margin-bottom: 30px;
+  color: #a0a0a0;
+  font-family: var(--font-secondary);
 }
 
 .movie-content h2 {
   font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #fff;
+  margin-bottom: 15px;
+  color: #ffffff;
+  letter-spacing: -0.02em;
 }
 
 .movie-content p {
-  line-height: 1.6;
-  color: #ccc;
-  margin-bottom: 2rem;
+  line-height: 1.8;
+  color: #a0a0a0;
+  letter-spacing: -0.01em;
 }
 
-
-.movie-comment-section {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #2d2d2d;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+.calendar-add-btn {
+  padding: 12px 24px;
+  background: #dc1a28;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-primary);
+  letter-spacing: -0.02em;
 }
 
-.movie-comment-section h2 {
-  color: #fff;
-  margin-bottom: 1.5rem;
+.calendar-add-btn:hover {
+  background: #b91521;
+  transform: translateY(-2px);
 }
 
 .comment-form {
-  background: #383838;
-  padding: 1.5rem;
+  background: #242937;
+  padding: 20px;
   border-radius: 8px;
-  margin-bottom: 2rem;
-}
-
-.rating-input {
-  margin-bottom: 1rem;
-  color: #fff;
-}
-
-.rating-input select {
-  margin-left: 1rem;
-  padding: 0.5rem;
-  background: #2d2d2d;
-  color: #ffd700;
-  border: 1px solid #555;
-  border-radius: 4px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .comment-input {
   display: flex;
-  gap: 1rem;
+  gap: 12px;
+  position: relative;
 }
 
 .comment-input input {
   flex: 1;
-  padding: 0.8rem;
-  background: #2d2d2d;
-  border: 1px solid #555;
-  border-radius: 4px;
-  color: #fff;
+  padding: 12px 20px;
+  background: #1a1f2c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-family: var(--font-primary);
+  letter-spacing: -0.01em;
+  transition: all 0.2s ease;
+}
+
+.comment-input input:focus {
+  outline: none;
+  border-color: #dc1a28;
+  box-shadow: 0 0 0 2px rgba(220, 26, 40, 0.2);
+}
+
+.comment-input input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-primary);
 }
 
 .comment-input button {
-  padding: 0.8rem 1.5rem;
-  background: #4a90e2;
+  padding: 12px 24px;
+  background: #dc1a28;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-primary);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .comment-input button:hover {
-  background: #357abd;
+  background: #b91521;
   transform: translateY(-2px);
 }
 
-.comments-list {
-  margin-top: 2rem;
+.comment-input button i {
+  font-size: 0.9rem;
 }
 
-.no-comments {
-  text-align: center;
-  color: #888;
-  padding: 2rem;
+@media (max-width: 768px) {
+  .comment-input {
+    flex-direction: column;
+  }
+
+  .comment-input button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
+.user-name {
+  color: #ffffff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: -0.01em;
+}
+
+.user-name:hover {
+  color: #dc1a28;
+  transform: translateY(-1px);
+}
+
+.comment-date {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+  font-family: var(--font-secondary);
+}
+
+.comment-text {
+  color: #ffffff;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+/* 댓글 아이템 스타일 */
 .comment-item {
-  padding: 1rem;
-  border-bottom: 1px solid #383838;
-  color: #fff;
+  padding: 20px;
+  background: #242937;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.comment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .comment-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #dc1a28;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-family: var(--font-secondary);
 }
 
 .user-name {
-  color: #4a90e2;
-  font-weight: bold;
+  color: #ffffff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-primary);
+  letter-spacing: -0.01em;
 }
 
-.comment-text {
-  color: #ccc;
-  line-height: 1.4;
+.user-name:hover {
+  color: #dc1a28;
+  transform: translateY(-1px);
 }
 
 .comment-date {
-  display: block;
-  margin-top: 0.5rem;
+  color: #a0a0a0;
   font-size: 0.9rem;
-  color: #888;
+  font-family: var(--font-secondary);
+}
+
+.comment-text {
+  color: #ffffff;
+  line-height: 1.6;
+  font-family: var(--font-primary);
+  letter-spacing: -0.01em;
+}
+
+/* 페이지네이션 스타일 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  gap: 0.8rem;
+  font-family: var(--font-secondary);
+}
+
+.page-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #242937;
+  color: #ffffff;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-btn:disabled {
+  background: #1a1f2c;
+  color: #4a5568;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.page-number {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #242937;
+  color: #ffffff;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--font-secondary);
+}
+
+.page-number.active {
+  background: #dc1a28;
+  color: white;
+  border: none;
+}
+
+.page-btn:hover:not(:disabled),
+.page-number:hover:not(.active) {
+  transform: translateY(-2px);
+  background: #2d3340;
+}
+
+@media (max-width: 768px) {
+  .pagination {
+    gap: 0.6rem;
+  }
+
+  .page-btn,
+  .page-number {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -434,85 +631,8 @@ const submitComment = async () => {
     height: 300px;
   }
 
-  .comment-input {
-    flex-direction: column;
+  .movie-header h1 {
+    font-size: 2rem;
   }
-
-  .comment-input button {
-    width: 100%;
-  }
-}
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 2rem;
-  gap: 0.5rem;
-}
-
-.page-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  background-color: #f0f0f0;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.page-btn:disabled {
-  background-color: #ddd;
-  cursor: not-allowed;
-}
-
-.page-numbers {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.page-number {
-  padding: 0.5rem 1rem;
-  border: none;
-  background-color: #f0f0f0;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.page-number.active {
-  background-color: #4a90e2;
-  color: white;
-}
-
-.page-btn:hover:not(:disabled),
-.page-number:hover:not(.active) {
-  background-color: #e0e0e0;
-}
-.calendar-add-section {
-  margin-top: 2rem;
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-}
-
-.calendar-add-btn {
-  padding: 0.8rem 1.5rem;
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-}
-
-.calendar-add-btn.secondary {
-  background-color: #2ecc71;
-}
-
-.calendar-add-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.calendar-add-btn.secondary:hover {
-  background-color: #27ae60;
 }
 </style>

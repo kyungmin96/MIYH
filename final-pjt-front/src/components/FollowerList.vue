@@ -1,21 +1,24 @@
-<!-- FollowerList.vue -->
 <template>
   <div class="follower-list">
-    <h1>팔로워 목록</h1>
+    <h2 class="follower-title">
+      <i class="fas fa-users"></i>
+      팔로워 목록
+    </h2>
     <div class="follower-content">
-      <div v-if="loading" class="loading">
-        Loading...
+      <div v-if="profileData?.followers_list.length === 0" class="no-follower">
+        <div class="empty-state">
+          <div class="empty-content">
+          <i class="fas fa-users"></i>
+          <p>아직 팔로워가 없습니다</p>
+        </div>
       </div>
-      <div v-else-if="profileData?.followers_list === 0" class="no-followers">
-        팔로워가 없습니다.
       </div>
-      <div v-else class="followers">
-        <FollowerLisetitem
-        v-for="follower in profileData?.followers_list"
+      <div v-else class="follower-grid">
+        <FollowerListItem
+          v-for="follower in profileData?.followers_list"
           :key="follower.id"
           :follower="follower"
-          @unfollow="unfollowUser"
-          />
+        />
       </div>
     </div>
   </div>
@@ -23,7 +26,8 @@
 
 <script setup>
 import { defineProps } from 'vue';
-import FollowerLisetitem from '@/components/FollowerLisetitem.vue';
+import FollowerListItem from '@/components/FollowerLisetitem.vue';
+
 
 const props = defineProps({
   profileData: {
@@ -36,74 +40,68 @@ const props = defineProps({
 
 
 <style scoped>
+
 .follower-list {
-  width: 33%;
-  height: 40vh;
-  border: 1px solid #ccc;
-  padding: 15px;
+  width: 100%;
+  max-width: 400px;
+  max-width: 800px;
+  height: 600px;
+  margin: 0 auto;
+  background: #1a1f2e;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.follower-title {
+  padding: 1.5rem;
+  margin: 0;
+  font-size: 1.25rem;
+  color: #ffffff;
+  background: #242937;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.follower-title i {
+  color: #dc1a28;
 }
 
 .follower-content {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  height: calc(80% - 50px);
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: 100%;
+  min-height: 200px;
+  padding: 1rem;
 }
 
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-}
-
-.no-followers {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-}
-
-.follower-item {
+.empty-state {
+  height: 100%;
+  min-height: 200px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  justify-content: center;
 }
 
-.follower-name {
-  font-weight: bold;
+.empty-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.unfollow-btn {
-  padding: 5px 10px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.empty-content i {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.unfollow-btn:hover {
-  background-color: #c82333;
+.empty-content p {
+  margin: 0;
+  font-size: 0.95rem;
 }
 
-/* 스크롤바 스타일링 */
-.follower-content::-webkit-scrollbar {
-  width: 8px;
-}
 
-.follower-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.follower-content::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-.follower-content::-webkit-scrollbar-thumb:hover {
-  background: #555;
+.follower-grid {
+  display: grid;
+  gap: 1rem;
 }
 </style>

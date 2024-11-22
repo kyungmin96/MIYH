@@ -1,17 +1,20 @@
 <template>
   <div class="calendar-container">
     <div class="calender-recommend">
-      <RecommendView />
-      <PopulerView />
+    <RecommendView v-if="recommendMovies" :movieData="recommendMovies"/>
+    <PopulerView v-if="popularMovies" :movieData="popularMovies"/>
+  </div>
+    <div class="calendar-wrapper">
+      <FullCalendar 
+        :options="calendarOptions"
+      />
     </div>
-    <FullCalendar 
-      :options="calendarOptions"
-    />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
@@ -19,35 +22,179 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import { useCounterStore } from '@/stores/counter'
 import RecommendView from '@/components/RecommendView.vue'
 import PopulerView from '@/components/PopulerView.vue'
+import axios from 'axios'
 
+const router = useRouter()
+const route = useRoute()
 const store = useCounterStore()
-const events = store.events
+const events = ref(null)
+const recommendMovies = ref(null)
+const popularMovies = ref(null)
+const lastYear = ref(null)
+const lastMonth = ref(null)
+
 const calendarOptions = ref({
   plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin],
+  initialDate: new Date().toISOString(), // ISO 문자열로 변환
   initialView: 'dayGridMonth',
+  firstDay: 1, // 월요일부터 시작
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
     right: 'dayGridMonth'
   },
-  height: 600,
-  aspectRatio: 1.5,
+  height: 1200,
+  aspectRatio: 2,
   events: events,
+  handleWindowResize: true,
+  progressiveEventRendering: true,
+  rerenderDelay: 100,
+  validRange: {
+    start: '2024-01-01',
+    end: '2025-12-31'
+  },
+  lazyFetching: false,
+  loading: (isLoading) => {
+ 
+  },
+  // 이벤트 렌더링 커스터마이징
   eventDidMount: (info) => {
     if (info.event.display === 'background') {
-      info.el.style.backgroundImage = `url(${info.event.extendedProps.imageUrl})`;
-      info.el.style.backgroundSize = 'cover';
-      info.el.style.backgroundPosition = 'center';
+      const cell = info.el
+      // 포스터 이미지 설정
+      cell.style.backgroundImage = `url(${info.event.extendedProps.poster_path})`
+      cell.style.backgroundSize = 'cover'
+      cell.style.backgroundPosition = 'center'
+      cell.style.opacity = '0.8'
+      cell.style.cursor = 'pointer'
+      
+      // 클릭 이벤트 추가
+      cell.addEventListener('click', () => {
+        router.push(`/movie/${info.event.id}`)
+      })
     }
   },
+  // 날짜 변경 핸들러
+  datesSet: async (dateInfo) => {
+  // 달력의 현재 표시된 날짜 정보 가져오기
+  const viewTitle = document.querySelector('.fc-toolbar-title').textContent
+  
+  // "November 2024" 형식의 문자열에서 년도와 월 추출
+  const [monthName, year] = viewTitle.split(' ')
+  
+  // 월 이름을 숫자로 변환
+  const monthNames = {
+    'January': 1, 'February': 2, 'March': 3, 'April': 4,
+    'May': 5, 'June': 6, 'July': 7, 'August': 8,
+    'September': 9, 'October': 10, 'November': 11, 'December': 12
+  }
+  
+  const month = monthNames[monthName]
+  
+
+  
+  // 이전 상태와 비교
+  if (lastYear.value !== Number(year) || lastMonth.value !== month) {
+    // 상태 업데이트
+    lastYear.value = Number(year)
+    lastMonth.value = month
+    
+    // 이전 이벤트 초기화
+    events.value = []
+    
+    try {
+      await fetchCalendarData(Number(year), month)
+    } catch (error) {
+      console.error('데이터 로드 실패:', error)
+    }
+  }
+}
+})
+const fetchCalendarData = async (year, month) => {
+  try {
+    
+    const response = await axios.get(
+      `${store.API_URL}/movies/calendar/${route.params.userName}/`,
+      {
+        params: {
+          year: year,
+          month: month
+        },
+        headers: {
+          Authorization: `Token ${store.token}`
+        }
+      }
+    )
+    
+    if (response.data.calendar_data && Array.isArray(response.data.calendar_data)) {
+      events.value = response.data.calendar_data.map(event => ({
+        id: event.movie_id,
+        title: event.title,
+        start: event.date,
+        display: 'background',
+        extendedProps: {
+          poster_path: `https://image.tmdb.org/t/p/original${event.poster_path}`
+        }
+      }))
+    }
+  } catch (error) {
+    console.error('캘린더 데이터 로드 실패:', error)
+  }
+}
+
+
+const fetchRecommendations = async () => {
+  try {
+    const { latitude, longitude } = store.userLocation
+
+    const response = await axios.get(
+      `${store.API_URL}/movies/recommendations/`,
+      {
+        params: {
+          latitude: latitude,
+          longitude: longitude
+        },
+        headers: {
+          Authorization: `Token ${store.token}`
+        }
+      }
+    )
+    if (response.data.recommendations && Array.isArray(response.data.recommendations)) {
+      
+      recommendMovies.value = response.data.recommendations[0] // 추천 영화
+      popularMovies.value = response.data.recommendations[1]   // 인기 영화
+    }
+  } catch (error) {
+    console.error('추천 영화 로드 실패:', error)
+  }
+}
+
+onMounted(async () => {
+  if (!store.token) {
+    alert('로그인이 필요한 서비스입니다.')
+    router.push('/login')
+    return
+  }
+  
+  await fetchRecommendations()
+  
+  // 현재 날짜로 초기 데이터 로드
+  const today = new Date()
+  const currentYear = today.getFullYear()
+  const currentMonth = today.getMonth() + 1
+  
+  // 초기 상태 설정
+  lastYear.value = currentYear
+  lastMonth.value = currentMonth
+  
+  await fetchCalendarData(currentYear, currentMonth)
 })
 </script>
 
 <style>
 .calendar-container {
-  max-width: 700px;
-  height: 900px;
-  margin: 20px auto;
+  max-width: 1200px;
+  margin: 40px auto;
   padding: 0 20px;
 }
 
@@ -56,60 +203,71 @@ const calendarOptions = ref({
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
-  margin-bottom: 20px;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.calendar-wrapper {
+  background: rgba(28, 33, 46, 0.95);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .fc {
-  height: 100% !important;
+  background: transparent;
+  color: #ffffff;
 }
 
-/* 날짜 셀의 높이 설정 */
-.fc-daygrid-day {
-  height: 100px !important;
+/* 캘린더 헤더 스타일링 */
+.fc-header-toolbar {
+  padding: 15px !important;
+  margin-bottom: 20px !important;
 }
 
-/* 배경 이미지 이벤트 스타일링 */
-.fc-daygrid-day-events {
-  margin: 0 !important;
+.fc-toolbar-title {
+  color: #ffffff !important;
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
 }
 
-.fc-event {
-  margin: 0 !important;
+/* 버튼 스타일링 */
+.fc-button-primary {
+  background: linear-gradient(145deg, #e50914, #b2070f) !important;
   border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
 }
 
-/* 배경 이벤트가 날짜 셀 전체를 채우도록 설정 */
-.fc-daygrid-bg-harness {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
+.fc-button-primary:hover {
+  background: linear-gradient(145deg, #f40612, #e50914) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 15px rgba(229, 9, 20, 0.3) !important;
 }
 
-/* 날짜 텍스트를 이미지 위에 보이도록 설정 */
-.fc-daygrid-day-top {
-  position: relative;
+/* 날짜 셀 스타일링 */
+.fc-daygrid-day {
+  min-height: 150px !important; /* 높이 증가 */
+  height: 150px !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* 날짜 숫자 스타일링 */
 .fc-daygrid-day-number {
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.8); 
-  padding: 5px !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  padding: 8px !important;
 }
 
-/* 오늘 날짜 강조 스타일 */
+/* 오늘 날짜 스타일 */
 .fc-day-today {
-  background-color: rgba(255, 220, 40, 0.15) !important;
-  border: 2px solid #FFD700 !important;
+  background: rgba(229, 9, 20, 0.1) !important;
 }
 
-/* 오늘 날짜 숫자 스타일 */
 .fc-day-today .fc-daygrid-day-number {
-  background-color: #FFD700;
-  color: #000000;
+  background: #e50914;
   border-radius: 50%;
   width: 30px;
   height: 30px;
@@ -117,78 +275,55 @@ const calendarOptions = ref({
   align-items: center;
   justify-content: center;
   margin: 5px;
-  font-weight: bold;
-  text-shadow: none;
-}
-
-/* 이미지가 있는 날짜의 경우 오늘 날짜 스타일 조정 */
-.fc-day-today.fc-daygrid-day {
-  position: relative;
-}
-
-.fc-day-today.fc-daygrid-day::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border: 3px solid #FFD700;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* 캘린더 헤더 스타일링 */
-.fc-header-toolbar {
-  margin-bottom: 1.5em !important;
-  padding: 10px;
-}
-
-.fc-toolbar-title {
-  font-size: 1.5em !important;
-  font-weight: bold;
-}
-.fc .fc-bg-event {
-  background: var(--fc-bg-event-color);
-  opacity: 1 !important; /* 완전 불투명하게 설정 */
-}
-
-.fc-button-primary {
-  background-color: #4CAF50 !important;
-  border-color: #4CAF50 !important;
-}
-
-.fc-button-primary:hover {
-  background-color: #45a049 !important;
-  border-color: #45a049 !important;
 }
 
 /* 주말 색상 */
-.fc-day-sat {
-  color: blue;
+.fc-day-sat .fc-daygrid-day-number {
+  color: #4a90e2 !important;
 }
 
-.fc-day-sun {
-  color: red;
+.fc-day-sun .fc-daygrid-day-number {
+  color: #e50914 !important;
 }
 
-/* 반응형 스타일 */
+/* 이벤트 스타일링 */
+.fc-bg-event {
+  opacity: 0.8 !important;
+  border-radius: 8px !important;
+}
+
+/* 반응형 디자인 */
 @media screen and (max-width: 768px) {
   .calendar-container {
-    padding: 0 10px;
+    padding: 0 15px;
+    margin: 20px auto;
   }
-  
+
+  .calender-recommend {
+    flex-direction: column;
+  }
+
+  .calendar-wrapper {
+    padding: 15px;
+  }
+
   .fc-daygrid-day {
     height: 80px !important;
   }
-  
+
   .fc-header-toolbar {
     flex-direction: column;
     gap: 10px;
+    padding: 10px !important;
   }
 
   .fc-toolbar-title {
-    font-size: 1.2em !important;
+    font-size: 1.2rem !important;
+  }
+
+  .fc-button-primary {
+    padding: 6px 12px !important;
+    font-size: 0.9rem !important;
   }
 }
 </style>

@@ -1,12 +1,25 @@
 <template>
   <div class="write-list">
-    <h1>작성 글 목록</h1>
+    <h2 class="write-title">
+      <i class="fas fa-pen"></i>
+      작성 글 목록
+    </h2>
     <div class="write-content">
-      <WriteListitem
-        v-for="post in profileData?.posts"
-        :key="post.id"
-        :write="post" 
-      />
+      <div v-if="!profileData?.posts?.length" class="no-posts">
+        <div class="empty-state">
+          <div class="empty-content">
+            <i class="fas fa-file-alt"></i>
+            <p>작성한 글이 없습니다</p>
+          </div>
+        </div>
+      </div>
+      <div v-else class="posts-grid">
+        <WriteListitem 
+          v-for="post in profileData?.posts"
+          :key="post.id"
+          :write="post"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -25,35 +38,82 @@ const props = defineProps({
 
 <style scoped>
 .write-list {
-  width: 33%;
-  height: 40vh; /* 이전 컴포넌트와 동일한 높이 */
-  border: 1px solid #ccc;
-  padding: 15px;
+  width: 100%;
+  max-width: 400px;
+  max-width: 800px;
+  height: 600px;
+  margin: 0 auto;
+  background: #1a1f2e;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.write-title {
+  padding: 1.5rem;
+  margin: 0;
+  font-size: 1.25rem;
+  color: #ffffff;
+  background: #242937;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.write-title i {
+  color: #dc1a28;
 }
 
 .write-content {
-  border: 1px solid #ccc; /* 경계선 추가 (선택사항) */
-  border-radius: 8px; /* 모서리 둥글게 (선택사항) */
-  height: calc(80% - 50px); /* h1 높이를 고려하여 조정 */
-  overflow-y: auto; /* 세로 스크롤만 표시 */
-  overflow-x: hidden; /* 가로 스크롤 숨김 */
+  height: 100%;
+  min-height: 200px;
+  padding: 1rem;
 }
 
-/* 스크롤바 스타일링 (선택사항) */
+.empty-state {
+  height: 100%;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.empty-content i {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.empty-content p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.posts-grid {
+  display: grid;
+  gap: 1rem;
+}
+
 .write-content::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 
 .write-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .write-content::-webkit-scrollbar-thumb {
-  background: #888;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
 }
 
 .write-content::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgba(255, 255, 255, 0.3);
 }
 </style>

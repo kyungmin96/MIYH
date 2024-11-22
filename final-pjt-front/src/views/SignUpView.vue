@@ -1,36 +1,60 @@
 <template>
   <div class="signup-container">
-    <h1>SignUp Page</h1>
-    <form @submit.prevent="signUp">
-  <div class="form-group">
-    <label for="username">ID : </label>
-    <input type="text" id="username" v-model.trim="username" placeholder="영문, 숫자 포함 4-12자">
-  </div>
+    <div class="signup-box">
+      <div class="signup-header">
+        <i class="fas fa-film"></i>
+        <h1>회원가입</h1>
+        <p class="subtitle">MIYH와 함께 새로운 영화의 세계로</p>
+      </div>
 
-  <div class="form-group">
-    <label for="password1">password : </label>
-    <input type="password" id="password1" v-model.trim="password1" placeholder="영문, 숫자 포함 4-12자">
-  </div>
+      <form @submit.prevent="signUp">
+        <div class="form-group">
+          <label for="username">아이디</label>
+          <div class="input-wrapper">
+            <i class="fas fa-user"></i>
+            <input type="text" id="username" v-model.trim="username" placeholder="ID를 입력하세요.">
+          </div>
+        </div>
 
-  <div class="form-group">
-    <label for="password2">password confirmation : </label>
-    <input type="password" id="password2" v-model.trim="password2">
-  </div>
+        <div class="form-group">
+          <label for="password1">비밀번호</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password1" v-model.trim="password1" placeholder="영문, 숫자 포함 8자 이상">
+          </div>
+        </div>
 
-  <div class="form-group">
-    <label for="name">username : </label>
-    <input type="text" id="name" v-model.trim="name" placeholder="영문, 숫자 포함 4-12자">
-  </div>
+        <div class="form-group">
+          <label for="password2">비밀번호 확인</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password2" v-model.trim="password2" placeholder="영문, 숫자 포함 8자 이상">
+          </div>
+        </div>
 
-  <div class="form-group">
-    <label for="email">email : </label>
-    <input type="email" id="email" v-model.trim="email" placeholder="중복되지 않은 이메일을 사용해 주세요.">
-  </div>
-  
-  <input type="submit" value="SignUp">
-</form>
-    <div>
-      <button @click="login">로그인 하러 가기</button>
+        <div class="form-group">
+          <label for="name">이름</label>
+          <div class="input-wrapper">
+            <i class="fas fa-id-card"></i>
+            <input type="text" id="name" v-model.trim="name" placeholder="닉네임을 입력해주세요.">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">이메일</label>
+          <div class="input-wrapper">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="email" v-model.trim="email" placeholder="중복되지 않은 이메일을 사용해 주세요.">
+          </div>
+        </div>
+
+        <button type="submit" class="signup-btn">회원가입</button>
+      </form>
+
+      <div class="login-link">
+        <span>이미 계정이 있으신가요?</span>
+        <button @click="login" class="login-btn">로그인</button>
+      </div>
     </div>
   </div>
 </template>
@@ -64,120 +88,140 @@ const login = function () {
 
 <style scoped>
 .signup-container {
+  min-height: 100vh;
+  height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 20px;
-  max-width: 500px;
-  margin: 0 auto;
-  min-height: calc(100vh - 60px);
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+}
+
+.signup-box {
+  width: 100%;
+  height: 88%;
+  max-width: 480px;
+  background: rgba(28, 33, 46, 0.95);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.signup-header i {
+  font-size: 40px;
+  color: #e50914;
+  margin-bottom: 20px;
 }
 
 h1 {
-  color: #2c3e50;
-  margin-bottom: 2rem;
-  font-size: 2.5rem;
-  text-align: center;
+  color: #ffffff;
+  font-size: 2rem;
+  margin-bottom: 10px;
 }
 
-form {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 2rem 3rem;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
+.subtitle {
+  color: #b3b3b3;
+  font-size: 0.9rem;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
-  width: 100%;
+  margin-bottom: 24px;
 }
 
 label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #34495e;
+  color: #ffffff;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
   font-weight: 500;
-  font-size: 1rem;
 }
 
-input[type="text"],
-input[type="password"],
-input[type="email"] {
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper i {
+  position: absolute;
+  left: 12px;
+  color: #b3b3b3;
+}
+
+input {
   width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-  box-sizing: border-box;
+  padding: 12px 12px 12px 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="email"]:focus {
-  border-color: #3498db;
+input::placeholder {
+  color: #666;
+}
+
+input:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(229, 9, 20, 0.5);
   outline: none;
-  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
 }
 
-input[type="submit"] {
+.signup-btn {
   width: 100%;
-  padding: 0.8rem;
-  background-color: #3498db;
+  padding: 14px;
+  background: #e50914;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin: 1rem 0;
+  transition: all 0.3s ease;
+  margin-top: 20px;
 }
 
-input[type="submit"]:hover {
-  background-color: #2980b9;
+.signup-btn:hover {
+  background: #f40612;
+  transform: translateY(-2px);
 }
 
-button {
-  width: 100%;
-  padding: 0.8rem;
-  background-color: #2ecc71;
-  color: white;
+.login-link {
+  text-align: center;
+  margin-top: 24px;
+  color: #b3b3b3;
+}
+
+.login-btn {
+  background: none;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 500;
+  color: #e50914;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 1rem;
+  margin-left: 8px;
+  transition: all 0.3s ease;
 }
 
-button:hover {
-  background-color: #27ae60;
+.login-btn:hover {
+  color: #f40612;
+  text-decoration: underline;
 }
 
-/* 반응형 디자인 */
 @media (max-width: 480px) {
-  .signup-container {
-    padding: 10px;
-  }
-
-  form {
-    padding: 1.5rem;
+  .signup-box {
+    padding: 30px 20px;
   }
 
   h1 {
-    font-size: 2rem;
-  }
-
-  input[type="text"],
-  input[type="password"],
-  input[type="email"],
-  input[type="submit"],
-  button {
-    padding: 0.6rem;
+    font-size: 1.8rem;
   }
 }
 </style>

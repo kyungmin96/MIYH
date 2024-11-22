@@ -1,9 +1,16 @@
 <template>
-  <div class="write-item">
-    <p class="title">{{ write.title }}</p>
-    <p class="content">{{ write.content_preview }}</p>
-    <button @click="goToDetail" class="detail-btn">상세 보기</button>
-    <hr>
+  <div class="post-item">
+    <div class="post-content">
+      <h3 class="post-title">{{ write.title }}</h3>
+      <p class="post-preview">{{ write.content_preview }}</p>
+    </div>
+    
+    <div class="post-footer">
+      <button @click="goToDetail" class="view-btn">
+        <span>상세 보기</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -24,47 +31,60 @@ const goToDetail = () => {
 </script>
 
 <style scoped>
-.write-item {
+.post-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
   padding: 1rem;
-  margin-bottom: 1rem;
+  transition: all 0.2s ease;
 }
 
-.title {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #333;
+.post-item:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.content {
-  color: #666;
-  margin-bottom: 1rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.post-title {
+  color: #ffffff;
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.post-preview {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.detail-btn {
+.post-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view-btn {
+  background: #dc1a1a;
+  color: #ffffff;
+  border: none;
   padding: 0.5rem 1rem;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
 }
 
-.detail-btn:hover {
-  background-color: #45a049;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+.view-btn:hover {
+  background: #c41717;
 }
 
-hr {
-  border: none;
-  border-top: 1px solid #eee;
-  margin: 1rem 0;
+.view-btn i {
+  font-size: 0.8rem;
 }
 </style>

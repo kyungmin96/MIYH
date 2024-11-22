@@ -67,7 +67,7 @@ const content = ref('')
 onMounted(async () => {
   try {
     const response = await axios.get(
-      `http://127.0.0.1:8000/community/posts/${route.params.id}/`,
+      `${store.API_URL}/community/posts/${route.params.id}/`,
       {
         headers: {
           Authorization: `Token ${store.token}`
@@ -92,7 +92,7 @@ const updateArticle = async () => {
   try {
     const response = await axios({
       method: 'put',
-      url: `http://127.0.0.1:8000/community/posts/${route.params.id}/`,
+      url: `${store.API_URL}/community/posts/${route.params.id}/`,
       data: {
         title: title.value,
         content: content.value,
@@ -133,14 +133,14 @@ const goBack = () => {
 .write-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 .write-form {
-  background: white;
+  background: #1a1f2e;
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .form-header {
@@ -149,8 +149,8 @@ const goBack = () => {
 }
 
 .form-header h2 {
-  font-size: 1.8rem;
-  color: #333;
+  font-size: 1.6rem;
+  color: #ffffff;
 }
 
 .form-group {
@@ -161,15 +161,17 @@ label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #444;
+  color: #ffffff;
 }
 
 input, select, textarea {
   width: 100%;
   padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  background: #2a2f3e;
+  border: 1px solid #3a3f4e;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #ffffff;
 }
 
 textarea {
@@ -185,36 +187,45 @@ textarea {
 }
 
 button {
-  padding: 0.8rem 2rem;
+  padding: 0.7rem 1.8rem;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .submit-btn {
-  background-color: #4CAF50;
+  background-color: #dc1a1a;
   color: white;
 }
 
 .submit-btn:hover {
-  background-color: #45a049;
+  background-color: #c41717;
 }
 
 .cancel-btn {
-  background-color: #6c757d;
+  background-color: #3a3f4e;
   color: white;
 }
 
 .cancel-btn:hover {
-  background-color: #5a6268;
+  background-color: #2a2f3e;
 }
 
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 2px rgba(76,175,80,0.2);
+  border-color: #dc1a1a;
+  box-shadow: 0 0 0 2px rgba(220,26,26,0.2);
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6c757d;
+}
+
+select option {
+  background: #2a2f3e;
+  color: #ffffff;
 }
 
 @media (max-width: 768px) {
@@ -223,11 +234,11 @@ input:focus, select:focus, textarea:focus {
   }
   
   .write-form {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
   
   button {
-    padding: 0.8rem 1.5rem;
+    padding: 0.7rem 1.4rem;
   }
 }
 </style>

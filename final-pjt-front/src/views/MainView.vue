@@ -1,13 +1,11 @@
 <template>
   <div class="container">
-    <div>
+    <div class="title">
       오늘의 영화를 추가하세요!
     </div>
-    <div>
-      <button @click="login">로그인하기</button>
-    </div>
-    <div>
-      <button @click="signup">회원 가입</button>
+    <div class="button-group">
+      <button class="primary-btn" @click="login">로그인하기</button>
+      <button class="secondary-btn" @click="signup">회원 가입</button>
     </div>
   </div>
 </template>
@@ -28,65 +26,67 @@ const signup = function () {
 
 <style scoped>
 .container {
-  background-color: #333333;
-  height: 100%;
+  background-color: #1a1f2c;
+  height: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 60px);
   text-align: center;
+  padding: 2rem;
 }
 
-div:first-child {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #ffffff; /* 밝은 텍스트 */
-
-  padding: 1rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 2rem;
 }
 
-button {
-  width: 250px;
-  padding: 1rem;
-  margin: 0.8rem;
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.primary-btn, .secondary-btn {
+  width: 100%;
+  padding: 0.8rem;
   border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  border-radius: 4px;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
 }
 
-button:first-of-type {
-  background-color: #4a90e2; /* 로그인 버튼 */
+.primary-btn {
+  background-color: #e31c1c;
   color: white;
 }
 
-button:first-of-type:hover {
-  background-color: #357abd;
-  transform: translateY(-2px);
+.primary-btn:hover {
+  background-color: #c41818;
 }
 
-button:last-of-type {
-  background-color: #50c878; /* 회원가입 버튼 */
+.secondary-btn {
+  background-color: #2c3e50;
   color: white;
 }
 
-button:last-of-type:hover {
-  background-color: #3ca25f;
-  transform: translateY(-2px);
+.secondary-btn:hover {
+  background-color: #34495e;
 }
 
 @media (max-width: 480px) {
-  div:first-child {
-    font-size: 1.8rem;
+  .title {
+    font-size: 1.5rem;
   }
-
-  button {
-    width: 80%;
+  
+  .button-group {
     max-width: 250px;
   }
 }
