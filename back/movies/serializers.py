@@ -1,19 +1,26 @@
 from rest_framework import serializers
-from community.models import Movie  # Movie 모델 import 경로 수정
 from .models import MovieCalendar
+from community.models import Movie
 
+class MovieRecommendationSerializer(serializers.Serializer):
+    movie_id = serializers.SerializerMethodField()  # 전체 영화 목록의 ID
+    title = serializers.CharField()  # 영화 제목
+    poster_path = serializers.CharField()  # 포스터 경로
+    overview = serializers.CharField()  # 영화 줄거리
+
+    def get_movie_id(self, obj):
+        """TMDB ID를 기반으로 Movie 모델의 id 반환"""
+        movie = Movie.objects.filter(tmdb_id=obj['tmdb_id']).first()
+        return movie.id if movie else None
+    
 class MovieCalendarSerializer(serializers.ModelSerializer):
-    movie_title = serializers.CharField(source='movie.title', read_only=True)
-    poster_path = serializers.CharField(source='movie.poster_path', read_only=True)
+    movie_id = serializers.SerializerMethodField()  # Movie 모델의 id를 가져오는 커스텀 필드
 
     class Meta:
         model = MovieCalendar
-        fields = ('id', 'date', 'movie', 'movie_title', 'poster_path', 'latitude', 'longitude')  # 위치 정보 필드 추가
-        read_only_fields = ('user',)
+        fields = ('id', 'date', 'title', 'poster_path', 'movie_id')  # movie_id 추가
 
-class MovieRecommendationSerializer(serializers.ModelSerializer):
-    recommendation_reason = serializers.SerializerMethodField()  # 추천 이유 필드 추가
-
-    class Meta:
-        model = Movie
-        fields = ('id', 'title', 'poster_path', 'overview', 'recommendation_reason')
+    def get_movie_id(self, obj):
+        """TMDB ID를 기반으로 Movie 모델의 id 반환"""
+        movie = Movie.objects.filter(tmdb_id=obj.tmdb_id).first()
+        return movie.id if movie else None

@@ -1,14 +1,13 @@
-# movies/models.py
+# models.py
 from django.db import models
 from django.conf import settings
-from community.models import Movie  # community 앱의 Movie 모델 import
 
 class MovieCalendar(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    tmdb_id = models.IntegerField()
+    title = models.CharField(max_length=200)
+    poster_path = models.CharField(max_length=200, null=True)
     date = models.DateField()
-    # latitude = models.FloatField(null=True)  # 위치 정보 추가
-    # longitude = models.FloatField(null=True)
     
     class Meta:
         unique_together = ('user', 'date')

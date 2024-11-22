@@ -105,6 +105,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return [{
             'id': follower.id,
             'username': follower.username,
+            'name': follower.name,  # name 필드 추가
             'followers_count': follower.followers.count(),
             'is_followed': self.context.get('request').user in follower.followers.all() if self.context.get('request') else False
         } for follower in obj.followers.all()]
@@ -113,6 +114,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return [{
             'id': following.id,
             'username': following.username,
+            'name': following.name,  # name 필드 추가
             'followers_count': following.followers.count(),
             'is_followed': self.context.get('request').user in following.followers.all() if self.context.get('request') else False
         } for following in obj.followings.all()]
