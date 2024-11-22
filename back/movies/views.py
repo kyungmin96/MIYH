@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from accounts.models import User
 from datetime import datetime, timedelta
 from django.core.cache import cache
 from .models import MovieCalendar
@@ -160,10 +161,9 @@ def recommendation_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def calendar_data_view(request, username):
-    if request.user.username != username:
-        return Response({'error': '자신의 달력만 볼 수 있습니다.'}, 
-                        status=status.HTTP_403_FORBIDDEN)
-    
+    # 요청한 사용자 객체 가져오기
+    target_user = get_object_or_404(User, username=username)
+
     year = request.GET.get('year')
     month = request.GET.get('month')
 
@@ -171,12 +171,14 @@ def calendar_data_view(request, username):
         return Response({'error': '년도와 월 정보가 필요합니다.'}, 
                         status=status.HTTP_400_BAD_REQUEST)
 
-    today = datetime.now().date()
-    calendar_entries = fetch_calendar_data(request.user, year, month)
+    # 요청한 사용자의 달력 데이터 조회
+    calendar_entries = MovieCalendar.objects.filter(
+        user=target_user,
+        date__year=year,
+        date__month=month
+    )
 
-    # 직렬화된 데이터 생성
     serializer = MovieCalendarSerializer(calendar_entries, many=True)
-
     return Response({
         'calendar_data': serializer.data
     })
@@ -186,31 +188,32 @@ def calendar_data_view(request, username):
 def select_movie(request, username):
     if request.user.username != username:
         return Response({'error': '자신의 달력에만 영화를 선택할 수 있습니다.'}, 
-                       status=status.HTTP_403_FORBIDDEN)
+                        status=status.HTTP_403_FORBIDDEN)
 
     tmdb_id = request.data.get('tmdb_id')
     if not tmdb_id:
         return Response({'error': '영화를 선택해주세요.'}, 
-                       status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_400_BAD_REQUEST)
     
     today = datetime.now().date()
-    
-    if MovieCalendar.objects.filter(user=request.user, date=today).exists():
-        return Response({'error': '오늘은 이미 영화를 선택하셨습니다.'}, 
-                       status=status.HTTP_400_BAD_REQUEST)
-    
+
+    # TMDB API에서 영화 데이터 가져오기
     movie_data = get_tmdb_movie(tmdb_id)
     if not movie_data:
         return Response({'error': '유효하지 않은 영화입니다.'}, 
-                       status=status.HTTP_400_BAD_REQUEST)
-    
-    calendar_entry = MovieCalendar.objects.create(
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    # 달력 데이터를 업데이트하거나 새로 생성
+    calendar_entry, _ = MovieCalendar.objects.update_or_create(
         user=request.user,
-        tmdb_id=movie_data['tmdb_id'],
-        title=movie_data['title'],
-        poster_path=movie_data['poster_path'],
-        date=today
+        date=today,
+        defaults={
+            'tmdb_id': movie_data['tmdb_id'],
+            'title': movie_data['title'],
+            'poster_path': movie_data['poster_path'],
+        }
     )
-    
+
+    # 직렬화된 데이터만 반환
     serializer = MovieCalendarSerializer(calendar_entry)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.data, status=status.HTTP_200_OK)

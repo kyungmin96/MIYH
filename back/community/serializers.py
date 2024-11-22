@@ -66,7 +66,7 @@ class CommentSerializer(serializers.ModelSerializer):
         }
 
 class PostSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)  # 댓글 개수 추가
     like_users_count = serializers.IntegerField(source='like_users.count', read_only=True)
@@ -80,7 +80,15 @@ class PostSerializer(serializers.ModelSerializer):
                   'comments', 'comments_count',
                  'created_at', 'updated_at', 'like_users_count', 'is_liked')
         read_only_fields = ('like_users_count', 'comments_count')
-
+    
+    def get_user(self, obj):
+        """작성자 정보 반환"""
+        return {
+            "id": obj.user.id,
+            "username": obj.user.username,
+            "name": obj.user.name  # name 필드 추가
+        }
+    
     def get_is_liked(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:

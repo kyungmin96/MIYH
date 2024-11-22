@@ -58,6 +58,7 @@ def post_list(request):
         posts = Post.objects.filter(category=category).order_by('-pk')
     else:
         posts = Post.objects.order_by('-pk')
+        
     serializer = PostSerializer(posts, many=True, context={'request': request})
     return Response(serializer.data)
 
