@@ -9,7 +9,6 @@ import SignUpView from '@/views/SignUpView.vue'
 import ArticleDetail from '@/components/ArticleDetail.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import ArticleCreate from '@/views/ArticleCreate.vue'
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -75,6 +74,11 @@ const router = createRouter({
       name: 'article-edit',
       component: () => import('@/views/ArticleEdit.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/oauth/callback/kakao',
+      name: 'KakaoCallback',
+      component: () => import('@/components/KakaoCallback.vue')
     },
   ],
 })

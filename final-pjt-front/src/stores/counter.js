@@ -2,8 +2,6 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
-import poster2 from '../image/TMY-104.jpg'
-import poster1 from '../image/TMZ-223.jpg'
 
 export const useCounterStore = defineStore('counter', () => {
   const API_URL = import.meta.env.VITE_APP_API_URL
@@ -15,26 +13,6 @@ export const useCounterStore = defineStore('counter', () => {
     latitude: null,
     longitude: null
   })
-  const events = [
-    {
-      id: 1,
-      title: '인터스텔라',
-      display: 'background',
-      start: '2024-11-01',
-      extendedProps: {
-        imageUrl: poster2
-      }
-    },
-    {
-      id: 2,
-      title: '인셉션',
-      display: 'background',
-      start: '2024-11-05',
-      extendedProps: {
-        imageUrl: poster1
-      }
-    },
-  ];
 
   const signUp = function (payload) {
     const { username, password1, password2, email, name } = payload
@@ -158,11 +136,74 @@ export const useCounterStore = defineStore('counter', () => {
     }
   }
  
+  const getCurrentPosition = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser.'))
+      }
+      
+      navigator.geolocation.getCurrentPosition(
+        position => resolve(position),
+        error => reject(error),
+        { enableHighAccuracy: true }
+      )
+    })
+  }
 
- 
+  const kakaoLogin = () => {
+    const REST_API_KEY = import.meta.env.VITE_KAKAO_API_KEY;
+    const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
+    const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&prompt=login`;
+    
+    window.location.href = KAKAO_AUTH_URL;
+  };
+
+  const handleKakaoCallback = async (code) => {
+    try {
+      // 백엔드에 인증 코드 전송
+      const response = await axios.get(`${API_URL}/api/v1/accounts/kakao/callback/`, {
+        params: { code: code }
+      });
+  
+      if (response.data) {
+        // 사용자 정보 저장
+        userKey.value = response.data.username;
+        currentUser.value = response.data;
+  
+        // 위치 정보 가져오기
+        try {
+          const position = await getCurrentPosition();
+          userLocation.value = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+        } catch (error) {
+          console.error('위치 정보 가져오기 실패:', error);
+        }
+  
+        router.push({ 
+          name: 'calender', 
+          params: { userName: response.data.username }
+        });
+      }
+    } catch (error) {
+      console.error('카카오 로그인 처리 실패:', error);
+      alert('카카오 로그인에 실패했습니다.');
+      router.push('/login');
+    }
+  };
  
   
-  return {userKey,currentUser,logOut, API_URL,signUp,logIn,token,userLocation,events}
+  return {  userKey,
+    currentUser,
+    logOut,
+    API_URL,
+    signUp,
+    logIn,
+    token,
+    userLocation,
+    kakaoLogin,
+    handleKakaoCallback }
 }, {persist : {
   storage: sessionStorage
 }})

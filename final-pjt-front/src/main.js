@@ -16,5 +16,8 @@ pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
 app.use(router)
 app.use(VCalendar, {})
-
+// main.js
+if (window.Kakao && !window.Kakao.isInitialized()) {
+  window.Kakao.init(import.meta.env.VITE_KAKAO_API_KEY)
+}
 app.mount('#app')

@@ -5,6 +5,12 @@
     </div>
     <div class="button-group">
       <button class="primary-btn" @click="login">로그인하기</button>
+      <button class="kakao-btn" @click="kakaoLogin">
+        <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" 
+             alt="카카오 로그인" 
+             class="kakao-icon">
+        카카오로 시작하기
+      </button>
       <button class="secondary-btn" @click="signup">회원 가입</button>
     </div>
   </div>
@@ -12,16 +18,28 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
+import { useCounterStore } from '@/stores/counter';
 
-const router = useRouter()
+const router = useRouter();
+const store = useCounterStore();
 
 const login = function () {
-  router.push({ name: 'login'}) 
-}
+  router.push({ name: 'login' }); 
+};
 
 const signup = function () {
-  router.push({ name: 'signup'}) 
-}
+  router.push({ name: 'signup' }); 
+};
+
+const kakaoLogin = async () => {
+  // store의 kakaoLogin 함수 호출
+  try {
+    await store.kakaoLogin();
+  } catch (error) {
+    console.error('카카오 로그인 실패:', error);
+    alert('카카오 로그인에 실패했습니다.');
+  }
+};
 </script>
 
 <style scoped>
@@ -79,6 +97,40 @@ const signup = function () {
 
 .secondary-btn:hover {
   background-color: #34495e;
+}
+
+.kakao-btn {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #FEE500;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.kakao-btn:hover {
+  background-color: #FDD835;
+}
+
+.kakao-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 300px;
 }
 
 @media (max-width: 480px) {

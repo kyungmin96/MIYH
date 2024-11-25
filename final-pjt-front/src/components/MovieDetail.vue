@@ -17,22 +17,26 @@
               개봉일: {{ movie.release_date }}
             </span>
           </div>
+          <button @click="showVideo(movie.youtube_url)" class="video-btn">
+            <i class="fas fa-play"></i>
+            예고편 보기
+          </button>
         </div>
         <div class="movie-content">
           <h2>줄거리</h2>
           <p>{{ movie.overview }}</p>
         </div>
         <div class="calendar-add-section">
-      <button @click="addToCalendarToday" class="calendar-add-btn">
-        <i class="fas fa-calendar-plus"></i>
-        오늘의 영화로 추가 
-      </button>
-    </div>
+          <button @click="addToCalendarToday" class="calendar-add-btn">
+            <i class="fas fa-calendar-plus"></i>
+            오늘의 영화로 추가 
+          </button>
+        </div>
       </div>
-      
     </div>
-    
 
+    <YoutubeModel ref="youtubeModal" />
+  
     <div class="movie-comment-section">
       <div class="section-header">
         <h2>
@@ -92,7 +96,6 @@
       {{ page }}
     </button>
   </div>
-
   <button 
     :disabled="currentPage === totalPages"
     @click="currentPage++"
@@ -104,8 +107,6 @@
         </template>
       </div>
     </div>
-
-
   </div>
 </template>
 
@@ -114,7 +115,15 @@ import { ref, onMounted,computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCounterStore } from '@/stores/counter'
 import axios from 'axios'
+import YoutubeModel from './YoutubeModel.vue';
 
+
+
+const youtubeModal = ref(null);
+
+const showVideo = (videoId) => {
+  youtubeModal.value.openModal(videoId);
+};
 const route = useRoute()
 const store = useCounterStore()
 const movie = ref(null)
@@ -212,6 +221,7 @@ onMounted(async () => {
     const movieId = route.params.id
     const response = await axios.get(`${store.API_URL}/community/movies/${movieId}/`)
     movie.value = response.data
+    console.log(movie)
   } catch (error) {
     console.error('영화 정보 로드 실패:', error)
   }
@@ -349,6 +359,30 @@ const submitComment = async () => {
   line-height: 1.8;
   color: #a0a0a0;
   letter-spacing: -0.01em;
+}
+.video-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #dc1a28;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 15px;
+}
+
+.video-btn:hover {
+  background: #b91521;
+  transform: translateY(-2px);
+}
+
+.video-btn i {
+  font-size: 0.9rem;
 }
 
 .calendar-add-btn {
