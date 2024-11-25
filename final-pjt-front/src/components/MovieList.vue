@@ -8,10 +8,10 @@
           placeholder="영화 제목을 입력하세요"
           class="search-input"
         >
-        <!-- <button type="submit" class="search-btn">
+        <button type="submit" class="search-btn">
           <i class="fas fa-search"></i>
           검색
-        </button> -->
+        </button>
       </form>
     </div>
 
@@ -21,7 +21,7 @@
     </div>
     <div v-else class="movies-container">
       <MovieListItem
-        v-for="movie in filteredMovies"
+        v-for="movie in movies"
         :key="movie.id"
         :movie="movie"
       />
@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import MovieListItem from '@/components/MovieListItem.vue';
 import { useCounterStore } from '@/stores/counter';
@@ -39,20 +39,13 @@ const searchQuery = ref('');
 const loading = ref(true);
 const movies = ref([]);
 const store = useCounterStore();
-
-const filteredMovies = computed(() => {
-  if (!searchQuery.value) return movies.value;
-  
-  const query = searchQuery.value.toLowerCase();
-  return movies.value.filter(movie => 
-    movie.title.toLowerCase().includes(query)
-  );
-});
+const originalMovies = ref([]);
 
 onMounted(async () => {
   try {
     const response = await axios.get(`${store.API_URL}/community/movies/`);
     movies.value = response.data;
+    originalMovies.value = [...response.data];
   } catch (error) {
     console.error('영화 데이터 로드 실패:', error);
   } finally {
@@ -61,16 +54,21 @@ onMounted(async () => {
 });
 
 const searchMovies = async () => {
-  if (!searchQuery.value.trim()) return;
+  if (!searchQuery.value.trim()) {
+    movies.value = originalMovies.value;
+    return;
+  }
   
   loading.value = true;
   try {
     const response = await axios.get(
-      `${store.API_URL}/community/movies/search/?query=${searchQuery.value}`
+      `${store.API_URL}/community/movies/search/?query=${encodeURIComponent(searchQuery.value.trim())}`
     );
     movies.value = response.data;
   } catch (error) {
     console.error('영화 검색 실패:', error);
+    // 검색 실패시 원본 데이터 유지
+    movies.value = originalMovies.value;
   } finally {
     loading.value = false;
   }

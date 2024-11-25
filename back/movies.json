@@ -1,0 +1,5 @@
+[{"model": "movies.moviecalendar", "pk": 1, "fields": {"user": 1, "tmdb_id": 1022789, "title": "인사이드 아웃 2", "poster_path": "/x2BHx02jMbvpKjMvbf8XxJkYwHJ.jpg", "date": "2024-11-25"}},
+{"model": "movies.moviecalendar", "pk": 2, "fields": {"user": 1, "tmdb_id": 912649, "title": "베놈: 라스트 댄스", "poster_path": "/3flIDcZF3tnR7m5OU2h7lLPQwmr.jpg", "date": "2024-11-22"}},
+{"model": "movies.moviecalendar", "pk": 3, "fields": {"user": 1, "tmdb_id": 533535, "title": "데드풀과 울버린", "poster_path": "/4Zb4Z2HjX1t5zr1qYOTdVoisJKp.jpg", "date": "2024-11-14"}},
+{"model": "movies.moviecalendar", "pk": 4, "fields": {"user": 1, "tmdb_id": 1022789, "title": "완벽한 타인", "poster_path": "/9lhxidWwP7iIyw1Zax9gUtdFZXT.jpg", "date": "2024-11-7"}},
+{"model": "movies.moviecalendar", "pk": 5, "fields": {"user": 1, "tmdb_id": 11411, "title": "슈퍼맨 4: 최강의 적", "poster_path": "/vhs3P0JwqzlgfBqhjnCWDEOtDmS.jpg", "date": "2024-11-4"}}]
