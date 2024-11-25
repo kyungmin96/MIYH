@@ -24,30 +24,23 @@ class MovieCommentSerializer(serializers.ModelSerializer):
             "username": obj.user.username,
             "name": obj.user.name  # name 필드 추가
         }
-
+    
 class MovieSerializer(serializers.ModelSerializer):
     poster_url = serializers.SerializerMethodField()
     comments = MovieCommentSerializer(many=True, read_only=True)  # 한줄평 추가
     comments_count = serializers.IntegerField(source='comments.count', read_only=True)  # 한줄평 개수 추가
     is_in_calendar = serializers.SerializerMethodField()  # 사용자의 달력 여부 확인
-    tmdb_id = serializers.CharField(required=False)
-    poster_path = serializers.CharField(required=False, allow_null=True)
-    youtube_url = serializers.CharField(read_only=True)
+
     class Meta:
         model = Movie
         fields = ('id', 'tmdb_id', 'title', 'original_title', 'poster_path', 
-                 'overview', 'release_date', 'popularity', 'poster_url',
-                 'comments', 'comments_count', 'is_in_calendar', 'youtube_url')  # 필드 추가
+                  'overview', 'release_date', 'popularity', 'poster_url',
+                  'comments', 'comments_count', 'is_in_calendar', 'youtube_url')
 
     def get_poster_url(self, obj):
-        # obj가 딕셔너리인 경우를 처리
-        if isinstance(obj, dict):
-            poster_path = obj.get('poster_path')
-        else:
-            poster_path = obj.poster_path
-            
-        if poster_path:
-            return f"https://image.tmdb.org/t/p/w500{poster_path}"
+        """포스터 URL 생성"""
+        if obj.poster_path:
+            return f"https://image.tmdb.org/t/p/w500{obj.poster_path}"
         return None
 
     def get_is_in_calendar(self, obj):
@@ -56,6 +49,37 @@ class MovieSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return MovieCalendar.objects.filter(user=request.user, tmdb_id=obj.tmdb_id).exists()
         return False
+# class MovieSerializer(serializers.ModelSerializer):
+#     poster_url = serializers.SerializerMethodField()
+#     comments = MovieCommentSerializer(many=True, read_only=True)  # 한줄평 추가
+#     comments_count = serializers.IntegerField(source='comments.count', read_only=True)  # 한줄평 개수 추가
+#     is_in_calendar = serializers.SerializerMethodField()  # 사용자의 달력 여부 확인
+#     tmdb_id = serializers.CharField(required=False)
+#     poster_path = serializers.CharField(required=False, allow_null=True)
+#     youtube_url = serializers.CharField(read_only=True)
+#     class Meta:
+#         model = Movie
+#         fields = ('id', 'tmdb_id', 'title', 'original_title', 'poster_path', 
+#                  'overview', 'release_date', 'popularity', 'poster_url',
+#                  'comments', 'comments_count', 'is_in_calendar', 'youtube_url')  # 필드 추가
+
+#     def get_poster_url(self, obj):
+#         # obj가 딕셔너리인 경우를 처리
+#         if isinstance(obj, dict):
+#             poster_path = obj.get('poster_path')
+#         else:
+#             poster_path = obj.poster_path
+            
+#         if poster_path:
+#             return f"https://image.tmdb.org/t/p/w500{poster_path}"
+#         return None
+
+#     def get_is_in_calendar(self, obj):
+#         """사용자가 이 영화를 달력에 추가했는지 확인"""
+#         request = self.context.get('request')
+#         if request and request.user.is_authenticated:
+#             return MovieCalendar.objects.filter(user=request.user, tmdb_id=obj.tmdb_id).exists()
+#         return False
     
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()  # 사용자 정보에 name 포함

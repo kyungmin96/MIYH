@@ -340,7 +340,6 @@ def movie_comment_delete(request, comment_pk):
 def movie_search(request):
     """검색어를 기반으로 영화를 검색"""
     query = request.query_params.get('query', '')
-    
     if not query:
         return Response({'error': '검색어를 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -351,28 +350,23 @@ def movie_search(request):
         "query": query,
         "include_adult": False,
     }
-    
+
     try:
         response = requests.get(url, params=params)
         data = response.json()
-        
         valid_movies = []
-        
+
         for movie_data in data.get('results', []):
             # overview와 title이 없는 영화 건너뛰기
             if not movie_data.get('title') or not movie_data.get('overview'):
                 continue
-            
-            # 성인물 필터링
-            if is_adult_movie(movie_data['id']):
-                continue
-            
-            youtube_url = fetch_youtube_url(movie_data['id'])  # YouTube URL 가져오기
-            valid_movies.append(movie_data)
-            
+
+            # YouTube URL 가져오기
+            youtube_url = fetch_youtube_url(movie_data['id'])
+
             # DB 업데이트 또는 생성
-            Movie.objects.update_or_create(
-                tmdb_id=movie_data['id'],
+            movie, created = Movie.objects.update_or_create(
+                tmdb_id=movie_data['id'],  # tmdb_id로 매핑
                 defaults={
                     'title': movie_data['title'],
                     'original_title': movie_data['original_title'],
@@ -383,10 +377,66 @@ def movie_search(request):
                     'youtube_url': youtube_url,  # YouTube URL 저장
                 }
             )
-        
+            valid_movies.append(movie)  # Movie 객체 저장
+
+        # 직렬화: 데이터베이스의 고유 ID(`id`) 포함
         serializer = MovieSerializer(valid_movies, many=True)
         return Response(serializer.data)
-    
     except Exception as e:
         print(f"Error searching movies: {e}")
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+# @api_view(['GET'])
+# @permission_classes([AllowAny])
+# def movie_search(request):
+#     """검색어를 기반으로 영화를 검색"""
+#     query = request.query_params.get('query', '')
+    
+#     if not query:
+#         return Response({'error': '검색어를 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#     url = "https://api.themoviedb.org/3/search/movie"
+#     params = {
+#         "api_key": TMDB_API_KEY,
+#         "language": "ko-KR",
+#         "query": query,
+#         "include_adult": False,
+#     }
+    
+#     try:
+#         response = requests.get(url, params=params)
+#         data = response.json()
+        
+#         valid_movies = []
+        
+#         for movie_data in data.get('results', []):
+#             # overview와 title이 없는 영화 건너뛰기
+#             if not movie_data.get('title') or not movie_data.get('overview'):
+#                 continue
+            
+#             # 성인물 필터링
+#             if is_adult_movie(movie_data['id']):
+#                 continue
+            
+#             youtube_url = fetch_youtube_url(movie_data['id'])  # YouTube URL 가져오기
+#             valid_movies.append(movie_data)
+            
+#             # DB 업데이트 또는 생성
+#             Movie.objects.update_or_create(
+#                 tmdb_id=movie_data['id'],
+#                 defaults={
+#                     'title': movie_data['title'],
+#                     'original_title': movie_data['original_title'],
+#                     'poster_path': movie_data.get('poster_path'),
+#                     'overview': movie_data.get('overview'),
+#                     'release_date': movie_data.get('release_date'),
+#                     'popularity': movie_data.get('popularity', 0),
+#                     'youtube_url': youtube_url,  # YouTube URL 저장
+#                 }
+#             )
+        
+#         serializer = MovieSerializer(valid_movies, many=True)
+#         return Response(serializer.data)
+    
+#     except Exception as e:
+#         print(f"Error searching movies: {e}")
+#         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
