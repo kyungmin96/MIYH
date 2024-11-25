@@ -19,10 +19,11 @@ load_dotenv()
 
 # 환경 변수에서 API 키 가져오기
 # TMDB_API_KEY = os.getenv('TMDB_API_KEY')
-TMDB_API_KEY= 'c11b954d03d7485da9f105b516b20c07'
-# API Keys
-OPENWEATHER_API_KEY = 'dfc0c2cf38985a74141d64747691501a'
+TMDB_API_KEY = os.getenv('TMDB_API_KEY')
+OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY')
+KAKAO_REDIRECT_URI = 'http://127.0.0.1:8000/accounts/kakao/callback/'
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
