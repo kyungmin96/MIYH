@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MovieCalendar
+from .models import MovieCalendar, DayDiary
 from community.models import Movie
 
 class MovieRecommendationSerializer(serializers.Serializer):
@@ -14,13 +14,21 @@ class MovieRecommendationSerializer(serializers.Serializer):
         return movie.id if movie else None
     
 class MovieCalendarSerializer(serializers.ModelSerializer):
-    movie_id = serializers.SerializerMethodField()  # Movie 모델의 id를 가져오는 커스텀 필드
+    comment = serializers.SerializerMethodField()  # 오늘의 일기를 포함
 
     class Meta:
         model = MovieCalendar
-        fields = ('id', 'date', 'title', 'poster_path', 'movie_id')  # movie_id 추가
+        fields = ('id', 'tmdb_id', 'title', 'poster_path', 'date', 'comment')
 
-    def get_movie_id(self, obj):
-        """TMDB ID를 기반으로 Movie 모델의 id 반환"""
-        movie = Movie.objects.filter(tmdb_id=obj.tmdb_id).first()
-        return movie.id if movie else None
+    def get_comment(self, obj):
+        """해당 날짜의 오늘의 일기를 반환"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            diary = DayDiary.objects.filter(user=request.user, date=obj.date).first()
+            return diary.comment if diary else None
+        return None
+
+class DayDiarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DayDiary
+        fields = ('id', 'user', 'date', 'comment', 'created_at', 'updated_at')

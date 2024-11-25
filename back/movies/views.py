@@ -6,8 +6,8 @@ from django.shortcuts import get_object_or_404
 from accounts.models import User
 from datetime import datetime, timedelta
 from django.core.cache import cache
-from .models import MovieCalendar
-from .serializers import MovieCalendarSerializer, MovieRecommendationSerializer
+from .models import MovieCalendar, DayDiary
+from .serializers import MovieCalendarSerializer, MovieRecommendationSerializer, DayDiarySerializer
 from .utils import get_weather_by_location, check_korean_holiday, get_movie_recommendation, get_time_of_day, get_tmdb_movie
 from community.models import Movie
 from .utils import get_popular_movies
@@ -161,27 +161,20 @@ def recommendation_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def calendar_data_view(request, username):
-    # 요청한 사용자 객체 가져오기
-    target_user = get_object_or_404(User, username=username)
+    """사용자의 개인 달력 데이터를 반환"""
+    user = get_object_or_404(User, username=username)
+    year = int(request.query_params.get('year', datetime.now().year))
+    month = int(request.query_params.get('month', datetime.now().month))
 
-    year = request.GET.get('year')
-    month = request.GET.get('month')
-
-    if not year or not month:
-        return Response({'error': '년도와 월 정보가 필요합니다.'}, 
-                        status=status.HTTP_400_BAD_REQUEST)
-
-    # 요청한 사용자의 달력 데이터 조회
+    # 해당 연도 및 월의 달력 데이터를 가져옴
     calendar_entries = MovieCalendar.objects.filter(
-        user=target_user,
+        user=user,
         date__year=year,
         date__month=month
     )
-
-    serializer = MovieCalendarSerializer(calendar_entries, many=True)
-    return Response({
-        'calendar_data': serializer.data
-    })
+    serializer = MovieCalendarSerializer(calendar_entries, many=True, context={'request': request})
+    
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -217,3 +210,30 @@ def select_movie(request, username):
     # 직렬화된 데이터만 반환
     serializer = MovieCalendarSerializer(calendar_entry)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def day_diary_create_or_update(request):
+    """오늘의 일기를 생성하거나 수정"""
+    comment_text = request.data.get('comment')
+    if not comment_text:
+        return Response({'error': '일기 내용을 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    today = datetime.now().date()
+
+    # 오늘 날짜에 해당하는 일기를 생성 또는 수정
+    diary, created = DayDiary.objects.update_or_create(
+        user=request.user,
+        date=today,
+        defaults={'comment': comment_text}
+    )
+
+    if created:
+        message = "오늘의 일기가 작성되었습니다."
+        status_code = status.HTTP_201_CREATED
+    else:
+        message = "오늘의 일기가 수정되었습니다."
+        status_code = status.HTTP_200_OK
+
+    serializer = DayDiarySerializer(diary)
+    return Response({'message': message, 'data': serializer.data}, status=status_code)

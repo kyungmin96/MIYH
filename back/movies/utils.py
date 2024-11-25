@@ -34,39 +34,43 @@ def is_adult_movie(movie_id):
         print(f"Error checking certification: {e}")
         return False
 
+def fetch_youtube_url(tmdb_id):
+    """TMDB API를 통해 특정 영화의 YouTube 예고편 URL 가져오기"""
+    url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/videos"
+    params = {"api_key": tmdb_api_key, "language": "ko-KR"}
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        if response.status_code == 200:
+            videos = response.json().get('results', [])
+            for video in videos:
+                if video['site'] == 'YouTube' and video['type'] == 'Trailer':
+                    return f"https://www.youtube.com/watch?v={video['key']}"
+        return None
+    except requests.RequestException as e:
+        print(f"Error fetching YouTube URL: {e}")
+        return None
+
 def get_tmdb_movie(tmdb_id):
-    """
-    TMDB API를 통해 영화 정보 가져오기
-    """
+    """TMDB API를 통해 영화 정보 가져오기"""
     url = f"https://api.themoviedb.org/3/movie/{tmdb_id}?api_key={tmdb_api_key}&language=ko-KR"
-    video_url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/videos?api_key={tmdb_api_key}&language=ko-KR"
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
             data = response.json()
-            # 인증 등급 기반으로 성인물 제외
-            if is_adult_movie(tmdb_id):
+            # 성인물 제외
+            if data.get('adult', False):
                 return None
             # 한국어 정보가 없는 경우 제외
             if not data.get('title') or not data.get('overview'):
                 return None
-            video_response = requests.get(video_url, timeout=5)
-            youtube_url = None
-            if video_response.status_code == 200:
-                videos = video_response.json().get('results', [])
-                for video in videos:
-                    if video['site'] == 'YouTube' and video['type'] == 'Trailer':
-                        youtube_url = f"https://www.youtube.com/watch?v={video['key']}"
-                        break
-
-            # 반환 데이터에 YouTube URL 추가
             return {
                 'tmdb_id': data['id'],
                 'title': data['title'],
                 'poster_path': data['poster_path'],
                 'overview': data['overview'],
                 'popularity': data['popularity'],
-                'youtube_url': youtube_url  # YouTube URL 추가
+                'release_date': data.get('release_date'),  # 개봉일 포함
+                'youtube_url': fetch_youtube_url(data['id'])  # YouTube URL 포함
             }
         return None
     except requests.RequestException:
@@ -149,7 +153,7 @@ def get_movie_recommendation(weather, season, time_of_day, previous_tmdb_ids, ho
                         TMDB ID로만 응답해주세요."""
 
     response = client.chat.completions.create(
-        model="gpt-4-0125-preview",
+        model="gpt4o-mini",
         messages=[
             {"role": "system", "content": "당신은 영화 추천 전문가입니다. TMDB ID로만 응답해주세요."},
             {"role": "user", "content": prompt}
