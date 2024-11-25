@@ -11,6 +11,7 @@ class Movie(models.Model):
     overview = models.TextField(null=True)
     release_date = models.DateField(null=True)
     popularity = models.FloatField(default=0)
+    youtube_url = models.URLField(max_length=500, null=True, blank=True)  # YouTube URL 추가
 
     def __str__(self):
         return self.title

@@ -17,6 +17,24 @@ from django.conf import settings
 
 TMDB_API_KEY = settings.TMDB_API_KEY
 
+def fetch_youtube_url(tmdb_id):
+    """
+    TMDB API를 통해 특정 영화의 YouTube 예고편 URL 가져오기
+    """
+    url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/videos"
+    params = {"api_key": TMDB_API_KEY, "language": "ko-KR"}
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        if response.status_code == 200:
+            videos = response.json().get('results', [])
+            for video in videos:
+                if video['site'] == 'YouTube' and video['type'] == 'Trailer':
+                    return f"https://www.youtube.com/watch?v={video['key']}"
+        return None
+    except requests.RequestException as e:
+        print(f"Error fetching YouTube URL: {e}")
+        return None
+
 def fetch_popular_movies():
     url = f'https://api.themoviedb.org/3/discover/movie'
     params = {
@@ -223,7 +241,9 @@ def movie_list(request):
             # overview나 title이 없는 경우 건너뛰기
             if not movie_data.get('overview') or not movie_data.get('title'):
                 continue
-            
+
+            youtube_url = fetch_youtube_url(movie_data['id'])  # YouTube URL 가져오기
+
             # DB 업데이트 또는 생성
             Movie.objects.update_or_create(
                 tmdb_id=movie_data['id'],
@@ -234,6 +254,7 @@ def movie_list(request):
                     'overview': movie_data.get('overview'),
                     'release_date': movie_data.get('release_date'),
                     'popularity': movie_data.get('popularity', 0),
+                    'youtube_url': youtube_url,  # YouTube URL 저장
                 }
             )
         
@@ -346,6 +367,7 @@ def movie_search(request):
             if is_adult_movie(movie_data['id']):
                 continue
             
+            youtube_url = fetch_youtube_url(movie_data['id'])  # YouTube URL 가져오기
             valid_movies.append(movie_data)
             
             # DB 업데이트 또는 생성
@@ -358,6 +380,7 @@ def movie_search(request):
                     'overview': movie_data.get('overview'),
                     'release_date': movie_data.get('release_date'),
                     'popularity': movie_data.get('popularity', 0),
+                    'youtube_url': youtube_url,  # YouTube URL 저장
                 }
             )
         

@@ -39,6 +39,7 @@ def get_tmdb_movie(tmdb_id):
     TMDB API를 통해 영화 정보 가져오기
     """
     url = f"https://api.themoviedb.org/3/movie/{tmdb_id}?api_key={tmdb_api_key}&language=ko-KR"
+    video_url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/videos?api_key={tmdb_api_key}&language=ko-KR"
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
@@ -49,12 +50,23 @@ def get_tmdb_movie(tmdb_id):
             # 한국어 정보가 없는 경우 제외
             if not data.get('title') or not data.get('overview'):
                 return None
+            video_response = requests.get(video_url, timeout=5)
+            youtube_url = None
+            if video_response.status_code == 200:
+                videos = video_response.json().get('results', [])
+                for video in videos:
+                    if video['site'] == 'YouTube' and video['type'] == 'Trailer':
+                        youtube_url = f"https://www.youtube.com/watch?v={video['key']}"
+                        break
+
+            # 반환 데이터에 YouTube URL 추가
             return {
                 'tmdb_id': data['id'],
                 'title': data['title'],
                 'poster_path': data['poster_path'],
                 'overview': data['overview'],
-                'popularity': data['popularity']
+                'popularity': data['popularity'],
+                'youtube_url': youtube_url  # YouTube URL 추가
             }
         return None
     except requests.RequestException:
