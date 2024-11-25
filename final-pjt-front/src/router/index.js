@@ -75,11 +75,6 @@ const router = createRouter({
       component: () => import('@/views/ArticleEdit.vue'),
       meta: { requiresAuth: true }
     },
-    {
-      path: '/oauth/callback/kakao',
-      name: 'KakaoCallback',
-      component: () => import('@/components/KakaoCallback.vue')
-    },
   ],
 })
 

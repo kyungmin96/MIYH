@@ -9,6 +9,17 @@
         :options="calendarOptions"
       />
     </div>
+    <ReviewModal
+  v-if="showReviewModal"
+  :show="showReviewModal"
+  :movie-id="selectedMovieId"
+  :movie-title="selectedMovieTitle"
+  :movie-poster="selectedMoviePoster"
+  :movie-comment="selectedMovieComment"
+  :selected-date="selectedDate"
+  @close="closeReviewModal"
+  @data-updated="refetchCalendarData"
+/>
   </div>
 </template>
 
@@ -23,6 +34,7 @@ import { useCounterStore } from '@/stores/counter'
 import RecommendView from '@/components/RecommendView.vue'
 import PopulerView from '@/components/PopulerView.vue'
 import axios from 'axios'
+import ReviewModal from '@/components/ReviewModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -33,11 +45,47 @@ const popularMovies = ref(null)
 const lastYear = ref(null)
 const lastMonth = ref(null)
 
+const selectedDate = ref(null)
+const showReviewModal = ref(false)
+const selectedMovieId = ref(null)
+const selectedMovieTitle = ref(null)
+const selectedMoviePoster = ref(null)
+const selectedMovieComment =ref(null)
+const closeReviewModal = () => {
+  showReviewModal.value = false
+  // 선택된 날짜 스타일 제거
+  document.querySelectorAll('.fc-daygrid-day.selected').forEach(el => {
+    el.classList.remove('selected')
+  })
+  // 상태 초기화
+  selectedDate.value = null
+  selectedMovieId.value = null
+  selectedMovieTitle.value = null
+  selectedMoviePoster.value = null
+  selectedMovieComment.value =null
+}
+const fullCalendarRef = ref(null)
+
+const refetchCalendarData = async () => {
+  if (lastYear.value && lastMonth.value) {
+    await fetchCalendarData(lastYear.value, lastMonth.value)
+  }
+}
+
+// FullCalendar 강제 새로고침을 위한 함수
+const forceCalendarRefresh = () => {
+  if (fullCalendarRef.value) {
+    const calendarApi = fullCalendarRef.value.getApi()
+    calendarApi.refetchEvents()
+  }
+}
+
+// calendarOptions 수정
 const calendarOptions = ref({
   plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin],
-  initialDate: new Date().toISOString(), // ISO 문자열로 변환
+  initialDate: new Date().toISOString(),
   initialView: 'dayGridMonth',
-  firstDay: 1, // 월요일부터 시작
+  firstDay: 1,
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
@@ -54,23 +102,39 @@ const calendarOptions = ref({
     end: '2025-12-31'
   },
   lazyFetching: false,
-  loading: (isLoading) => {
- 
-  },
-  // 이벤트 렌더링 커스터마이징
+  loading: (isLoading) => {},
+  // 하나의 eventDidMount만 유지
   eventDidMount: (info) => {
     if (info.event.display === 'background') {
       const cell = info.el
-      // 포스터 이미지 설정
       cell.style.backgroundImage = `url(${info.event.extendedProps.poster_path})`
       cell.style.backgroundSize = 'cover'
       cell.style.backgroundPosition = 'center'
       cell.style.opacity = '0.8'
       cell.style.cursor = 'pointer'
       
-      // 클릭 이벤트 추가
       cell.addEventListener('click', () => {
-        router.push(`/movie/${info.event.id}`)
+        // 선택된 날짜 저장
+        selectedDate.value = info.event.start
+        
+        // 선택된 날짜 스타일링
+        const dateCell = cell.closest('.fc-daygrid-day')
+        if (dateCell) {
+          // 이전 선택된 날짜의 스타일 제거
+          document.querySelectorAll('.fc-daygrid-day.selected').forEach(el => {
+            el.classList.remove('selected')
+          })
+          // 새로 선택된 날짜에 스타일 추가
+          dateCell.classList.add('selected')
+        }
+
+        // 영화 정보 설정
+        selectedMovieId.value = Number(info.event.id)
+        selectedMovieTitle.value = info.event.title
+        selectedMoviePoster.value = info.event.extendedProps.poster_path
+        selectedMovieComment.value = info.event.extendedProps.comment
+        // 모달 열기
+        showReviewModal.value = true
       })
     }
   },
@@ -112,7 +176,6 @@ const calendarOptions = ref({
 })
 const fetchCalendarData = async (year, month) => {
   try {
-    
     const response = await axios.get(
       `${store.API_URL}/movies/calendar/${route.params.userName}/`,
       {
@@ -126,16 +189,20 @@ const fetchCalendarData = async (year, month) => {
       }
     )
     
-    if (response.data.calendar_data && Array.isArray(response.data.calendar_data)) {
-      events.value = response.data.calendar_data.map(event => ({
-        id: event.movie_id,
+    if (response.data && Array.isArray(response.data)) {
+      events.value = response.data.map(event => ({
+        id: event.id,
         title: event.title,
         start: event.date,
         display: 'background',
         extendedProps: {
-          poster_path: `https://image.tmdb.org/t/p/original${event.poster_path}`
+          poster_path: `https://image.tmdb.org/t/p/original${event.poster_path}`,
+          comment: event.comment
         }
       }))
+      
+      // 달력 강제 새로고침
+      forceCalendarRefresh()
     }
   } catch (error) {
     console.error('캘린더 데이터 로드 실패:', error)

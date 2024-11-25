@@ -35,8 +35,10 @@ window.addEventListener('unload', () => {
           :to="{name:'calender', params: { userName: userName }}" 
           class="nav-brand"
         >
+        <div class="logo">
           <i class="fas fa-film"></i>
-          <span>MIYH</span>
+          <span>MIYH*</span>
+        </div>
         </RouterLink>
         
         <div class="nav-links">
@@ -92,6 +94,31 @@ html, body {
   font-family: 'Noto Sans KR', sans-serif;
 }
 
+.logo {
+  display: flex;
+  gap: 0.5rem;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.fa-film {
+  font-size: 2.5rem;
+  color: #e31c1c;
+  transform: rotate(-15deg);
+  transition: transform 0.3s ease;
+}
+
+.logo:hover .fa-film {
+  transform: rotate(0deg);
+}
+
+.logo-text {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: red;
+  /* letter-spacing: 2px; */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-family: 'Arial', sans-serif;
+}
 .app-container {
   min-height: 100vh;
 

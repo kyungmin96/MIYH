@@ -136,62 +136,6 @@ export const useCounterStore = defineStore('counter', () => {
     }
   }
  
-  const getCurrentPosition = () => {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Geolocation is not supported by this browser.'))
-      }
-      
-      navigator.geolocation.getCurrentPosition(
-        position => resolve(position),
-        error => reject(error),
-        { enableHighAccuracy: true }
-      )
-    })
-  }
-
-  const kakaoLogin = () => {
-    const REST_API_KEY = import.meta.env.VITE_KAKAO_API_KEY;
-    const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
-    const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&prompt=login`;
-    
-    window.location.href = KAKAO_AUTH_URL;
-  };
-
-  const handleKakaoCallback = async (code) => {
-    try {
-      // 백엔드에 인증 코드 전송
-      const response = await axios.get(`${API_URL}/api/v1/accounts/kakao/callback/`, {
-        params: { code: code }
-      });
-  
-      if (response.data) {
-        // 사용자 정보 저장
-        userKey.value = response.data.username;
-        currentUser.value = response.data;
-  
-        // 위치 정보 가져오기
-        try {
-          const position = await getCurrentPosition();
-          userLocation.value = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          };
-        } catch (error) {
-          console.error('위치 정보 가져오기 실패:', error);
-        }
-  
-        router.push({ 
-          name: 'calender', 
-          params: { userName: response.data.username }
-        });
-      }
-    } catch (error) {
-      console.error('카카오 로그인 처리 실패:', error);
-      alert('카카오 로그인에 실패했습니다.');
-      router.push('/login');
-    }
-  };
  
   
   return {  userKey,
@@ -201,9 +145,7 @@ export const useCounterStore = defineStore('counter', () => {
     signUp,
     logIn,
     token,
-    userLocation,
-    kakaoLogin,
-    handleKakaoCallback }
+    userLocation, }
 }, {persist : {
   storage: sessionStorage
 }})
