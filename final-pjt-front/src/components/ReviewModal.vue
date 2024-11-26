@@ -65,7 +65,7 @@ const store = useCounterStore()
 
 const props = defineProps({
   show: Boolean,
-  movieId: [Number, String],
+  movieId: Number,
   movieTitle: String,
   moviePoster: String,
   movieComment: String

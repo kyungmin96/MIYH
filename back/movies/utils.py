@@ -153,7 +153,7 @@ def get_movie_recommendation(weather, season, time_of_day, previous_tmdb_ids, ho
                         TMDB ID로만 응답해주세요."""
 
     response = client.chat.completions.create(
-        model="gpt4o-mini",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "당신은 영화 추천 전문가입니다. TMDB ID로만 응답해주세요."},
             {"role": "user", "content": prompt}

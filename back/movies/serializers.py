@@ -14,11 +14,13 @@ class MovieRecommendationSerializer(serializers.Serializer):
         return movie.id if movie else None
     
 class MovieCalendarSerializer(serializers.ModelSerializer):
-    comment = serializers.SerializerMethodField()  # 오늘의 일기를 포함
+    """달력 데이터를 직렬화"""
+    comment = serializers.SerializerMethodField()
 
     class Meta:
         model = MovieCalendar
-        fields = ('id', 'tmdb_id', 'title', 'poster_path', 'date', 'comment')
+        fields = ('id', 'movie_id', 'user', 'tmdb_id', 'title', 'poster_path', 'date', 'comment')
+        read_only_fields = ('user',)
 
     def get_comment(self, obj):
         """해당 날짜의 오늘의 일기를 반환"""

@@ -172,9 +172,17 @@ def calendar_data_view(request, username):
         date__year=year,
         date__month=month
     )
-    serializer = MovieCalendarSerializer(calendar_entries, many=True, context={'request': request})
     
-    return Response(serializer.data)
+    # 데이터 확인을 위한 로깅
+    print("Calendar Entries:", calendar_entries.values())
+    
+    serializer = MovieCalendarSerializer(calendar_entries, many=True, context={'request': request})
+    serialized_data = serializer.data
+    
+    # 직렬화된 데이터 확인을 위한 로깅
+    print("Serialized Data:", serialized_data)
+    
+    return Response(serialized_data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -196,19 +204,30 @@ def select_movie(request, username):
         return Response({'error': '유효하지 않은 영화입니다.'}, 
                         status=status.HTTP_400_BAD_REQUEST)
 
+    # Movie 객체 가져오기 또는 생성하기
+    movie, _ = Movie.objects.get_or_create(
+        tmdb_id=tmdb_id,
+        defaults={
+            'title': movie_data['title'],
+            'poster_path': movie_data['poster_path']
+        }
+    )
+
     # 달력 데이터를 업데이트하거나 새로 생성
     calendar_entry, _ = MovieCalendar.objects.update_or_create(
         user=request.user,
         date=today,
         defaults={
+            'movie_id': movie.id,  # movie_id를 올바르게 설정
             'tmdb_id': movie_data['tmdb_id'],
             'title': movie_data['title'],
             'poster_path': movie_data['poster_path'],
         }
     )
 
-    # 직렬화된 데이터만 반환
     serializer = MovieCalendarSerializer(calendar_entry)
+    print("Movie ID:", movie.id)
+    print("Calendar Entry:", calendar_entry.__dict__)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])

@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 
 class MovieCalendar(models.Model):
+    movie_id = models.IntegerField(null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     tmdb_id = models.IntegerField()
     title = models.CharField(max_length=200)

@@ -115,6 +115,10 @@ const calendarOptions = ref({
       
       cell.addEventListener('click', () => {
         // 선택된 날짜 저장
+        console.log('전체 이벤트 정보:', info)
+        console.log('이벤트 객체:', info.event)
+        console.log('확장 속성:', info.event.extendedProps)
+        console.log('movie_id:', info.event.extendedProps.movie_id)
         selectedDate.value = info.event.start
         
         // 선택된 날짜 스타일링
@@ -129,7 +133,7 @@ const calendarOptions = ref({
         }
 
         // 영화 정보 설정
-        selectedMovieId.value = Number(info.event.id)
+        selectedMovieId.value = info.event.extendedProps.movie_id
         selectedMovieTitle.value = info.event.title
         selectedMoviePoster.value = info.event.extendedProps.poster_path
         selectedMovieComment.value = info.event.extendedProps.comment
@@ -196,6 +200,7 @@ const fetchCalendarData = async (year, month) => {
         start: event.date,
         display: 'background',
         extendedProps: {
+          movie_id: event.movie_id,  // movie_id 추가
           poster_path: `https://image.tmdb.org/t/p/original${event.poster_path}`,
           comment: event.comment
         }
@@ -204,6 +209,7 @@ const fetchCalendarData = async (year, month) => {
       // 달력 강제 새로고침
       forceCalendarRefresh()
     }
+    console.log('Calendar Data:', response.data)
   } catch (error) {
     console.error('캘린더 데이터 로드 실패:', error)
   }
