@@ -361,23 +361,27 @@ def movie_search(request):
 
             # YouTube URL 가져오기
             youtube_url = fetch_youtube_url(movie_data['id'])
+            
+            # release_date 처리
+            release_date = movie_data.get('release_date')
+            if release_date == "":
+                release_date = None
 
             # DB 업데이트 또는 생성
             movie, created = Movie.objects.update_or_create(
-                tmdb_id=movie_data['id'],  # tmdb_id로 매핑
+                tmdb_id=movie_data['id'],
                 defaults={
                     'title': movie_data['title'],
                     'original_title': movie_data['original_title'],
                     'poster_path': movie_data.get('poster_path'),
                     'overview': movie_data.get('overview'),
-                    'release_date': movie_data.get('release_date'),
+                    'release_date': release_date,  # 수정된 release_date 사용
                     'popularity': movie_data.get('popularity', 0),
-                    'youtube_url': youtube_url,  # YouTube URL 저장
+                    'youtube_url': youtube_url,
                 }
             )
-            valid_movies.append(movie)  # Movie 객체 저장
+            valid_movies.append(movie)
 
-        # 직렬화: 데이터베이스의 고유 ID(`id`) 포함
         serializer = MovieSerializer(valid_movies, many=True)
         return Response(serializer.data)
     except Exception as e:
