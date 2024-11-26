@@ -221,7 +221,6 @@ onMounted(async () => {
     const movieId = route.params.id
     const response = await axios.get(`${store.API_URL}/community/movies/${movieId}/`)
     movie.value = response.data
-    console.log(movie)
   } catch (error) {
     console.error('영화 정보 로드 실패:', error)
   }

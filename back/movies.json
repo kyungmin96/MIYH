@@ -1,5 +1,130 @@
-[{"model": "movies.moviecalendar", "pk": 1, "fields": {"user": 1, "tmdb_id": 1022789, "title": "인사이드 아웃 2", "poster_path": "/x2BHx02jMbvpKjMvbf8XxJkYwHJ.jpg", "date": "2024-11-25"}},
-{"model": "movies.moviecalendar", "pk": 2, "fields": {"user": 1, "tmdb_id": 912649, "title": "베놈: 라스트 댄스", "poster_path": "/3flIDcZF3tnR7m5OU2h7lLPQwmr.jpg", "date": "2024-11-22"}},
-{"model": "movies.moviecalendar", "pk": 3, "fields": {"user": 1, "tmdb_id": 533535, "title": "데드풀과 울버린", "poster_path": "/4Zb4Z2HjX1t5zr1qYOTdVoisJKp.jpg", "date": "2024-11-14"}},
-{"model": "movies.moviecalendar", "pk": 4, "fields": {"user": 1, "tmdb_id": 1022789, "title": "완벽한 타인", "poster_path": "/9lhxidWwP7iIyw1Zax9gUtdFZXT.jpg", "date": "2024-11-7"}},
-{"model": "movies.moviecalendar", "pk": 5, "fields": {"user": 1, "tmdb_id": 11411, "title": "슈퍼맨 4: 최강의 적", "poster_path": "/vhs3P0JwqzlgfBqhjnCWDEOtDmS.jpg", "date": "2024-11-4"}}]
+[
+  {
+    "model": "movies.moviecalendar",
+    "pk": 1,
+    "fields": {
+      "movie_id": 77,
+      "user": 3,
+      "tmdb_id": 567646,
+      "title": "극한직업",
+      "poster_path": "/jbHNkNydiZstlqhhBSvG19lm4NL.jpg",
+      "date": "2024-11-26"
+    }
+  },
+  {
+    "model": "movies.moviecalendar",
+    "pk": 2,
+    "fields": {
+      "movie_id": 40,
+      "user": 2,
+      "tmdb_id": 109445,
+      "title": "겨울왕국",
+      "poster_path": "/nelAGS4rcZm2Qyuy3TSNWgU2mEL.jpg",
+      "date": "2024-11-26"
+    }
+  },
+  {
+    "model": "movies.moviecalendar",
+    "pk": 3,
+    "fields": {
+      "movie_id": 77,
+      "user": 1,
+      "tmdb_id": 567646,
+      "title": "극한직업",
+      "poster_path": "/jbHNkNydiZstlqhhBSvG19lm4NL.jpg",
+      "date": "2024-11-01"
+    }
+  },
+  {
+    "model": "movies.moviecalendar",
+    "pk": 4,
+    "fields": {
+      "movie_id": 2,
+      "user": 1,
+      "tmdb_id": 76600,
+      "title": "아바타: 물의 길",
+      "poster_path": "/z56bVX93oRG6uDeMACR7cXCnAbh.jpg",
+      "date": "2024-11-21"
+    }
+  },
+  {
+    "model": "movies.moviecalendar",
+    "pk": 5,
+    "fields": {
+      "movie_id": 40,
+      "user": 1,
+      "tmdb_id": 109445,
+      "title": "겨울왕국",
+      "poster_path": "/nelAGS4rcZm2Qyuy3TSNWgU2mEL.jpg",
+      "date": "2024-11-06"
+    }
+  },
+  {
+    "model": "movies.moviecalendar",
+    "pk": 6,
+    "fields": {
+      "movie_id": 59,
+      "user": 1,
+      "tmdb_id": 955555,
+      "title": "범죄도시 3",
+      "poster_path": "/kPtNokhBtgwSp3MHaR3X4O0SPbF.jpg",
+      "date": "2024-11-15"
+    }
+  },
+  {
+    "model": "movies.moviecalendar",
+    "pk": 7,
+    "fields": {
+      "movie_id": 46,
+      "user": 1,
+      "tmdb_id": 771,
+      "title": "나 홀로 집에",
+      "poster_path": "/oOrGMMvpe51VmlC5nwEOt211kjy.jpg",
+      "date": "2024-11-24"
+    }
+  },
+  {
+    "model": "movies.daydiary",
+    "pk": 1,
+    "fields": {
+      "user": 3,
+      "date": "2024-11-26",
+      "comment": "웃고싶어서 선택했던 영화",
+      "created_at": "2024-11-26T01:44:58.705Z",
+      "updated_at": "2024-11-26T02:29:41.572Z"
+    }
+  },
+  {
+    "model": "movies.daydiary",
+    "pk": 2,
+    "fields": {
+      "user": 2,
+      "date": "2024-11-26",
+      "comment": "작성",
+      "created_at": "2024-11-26T01:47:55.864Z",
+      "updated_at": "2024-11-26T01:47:55.864Z"
+    }
+  },
+  {
+    "model": "movies.daydiary",
+    "pk": 4,
+    "fields": {
+      "user": 1,
+      "date": "2024-11-01",
+      "comment": "작성",
+      "created_at": "2024-11-01T01:47:55.864Z",
+      "updated_at": "2024-11-01T01:47:55.864Z"
+    }
+  },
+  {
+    "model": "movies.daydiary",
+    "pk": 3,
+    "fields": {
+      "user": 1,
+      "date": "2024-11-26",
+      "comment": "오늘 하루",
+      "created_at": "2024-11-26T02:00:22.217Z",
+      "updated_at": "2024-11-26T02:00:22.217Z"
+    }
+  }
+]

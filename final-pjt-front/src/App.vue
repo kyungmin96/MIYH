@@ -100,7 +100,7 @@ html, body {
   animation: fadeIn 0.5s ease-in;
 }
 
-.fa-film {
+.logo > .fa-film {
   font-size: 2.5rem;
   color: #e31c1c;
   transform: rotate(-15deg);

@@ -89,7 +89,6 @@ onMounted(async () => {
   try {
     const response = await axios.get(`${store.API_URL}/community/posts/`);
     articles.value = response.data;
-    console.log(articles)
   } catch (error) {
     console.error('커뮤니티 실패:', error);
   }

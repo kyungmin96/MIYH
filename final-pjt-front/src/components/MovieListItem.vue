@@ -42,6 +42,7 @@ const goToDetail = () => {
 
 .movie-item {
   background: #1a1f2c;
+  height: 450px;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
@@ -59,7 +60,7 @@ const goToDetail = () => {
 .movie-image {
   position: relative;
   width: 100%;
-  height: 400px;
+  height: 85%; /* 75%에서 85%로 증가 */
 }
 
 .movie-image img {
@@ -102,24 +103,31 @@ const goToDetail = () => {
 }
 
 .movie-info {
-  padding: 20px;
+  height: 15%; /* 25%에서 15%로 감소 */
+  width: 100%;
+  padding: 10px 15px; /* 상하 패딩 감소 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
-
 .movie-info h3 {
   color: #ffffff;
-  font-size: 1.3rem;
+  font-size: 1.1rem; /* 글자 크기 약간 감소 */
   font-weight: 700;
-  margin: 0 0 10px 0;
+  margin: 0;
   letter-spacing: -0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .movie-info p {
   color: #a0a0a0;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-top: 8px;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   letter-spacing: -0.01em;
@@ -127,19 +135,21 @@ const goToDetail = () => {
 
 @media (max-width: 768px) {
   .movie-image {
-    height: 300px;
+    height: 80%; /* 모바일에서도 이미지 비율 증가 */
+  }
+
+  .movie-info {
+    height: 20%;
   }
 
   .movie-info h3 {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
+
 
   .movie-info p {
-    font-size: 0.9rem;
-  }
-
-  .view-details {
-    font-size: 1rem;
+    font-size: 0.85rem;
+    -webkit-line-clamp: 1;
   }
 }
 </style>

@@ -173,14 +173,13 @@ def calendar_data_view(request, username):
         date__month=month
     )
     
-    # 데이터 확인을 위한 로깅
-    print("Calendar Entries:", calendar_entries.values())
+
     
     serializer = MovieCalendarSerializer(calendar_entries, many=True, context={'request': request})
     serialized_data = serializer.data
     
     # 직렬화된 데이터 확인을 위한 로깅
-    print("Serialized Data:", serialized_data)
+
     
     return Response(serialized_data)
 
@@ -226,8 +225,6 @@ def select_movie(request, username):
     )
 
     serializer = MovieCalendarSerializer(calendar_entry)
-    print("Movie ID:", movie.id)
-    print("Calendar Entry:", calendar_entry.__dict__)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])

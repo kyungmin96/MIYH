@@ -213,7 +213,6 @@ const submitComment = async () => {
       }
     )
     article.value = response.data
-    console.log(response)
     // 입력 폼 초기화
     newComment.value.content = ''
     alert('댓글이 등록되었습니다.')
@@ -236,11 +235,10 @@ onMounted(async () => {
       }
     )
     article.value = response.data
-      console.log(article)
   } catch (error) {
     console.error('게시글 정보 로드 실패:', error)
     if (error.response?.status === 401) {
-      alert('로그인이 필요한 서비스입니다.')
+      alert('로그인이 필요한 서비스입니다.')  
       router.push('/login')
     }
   }

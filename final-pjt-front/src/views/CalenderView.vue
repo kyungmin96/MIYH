@@ -114,21 +114,16 @@ const calendarOptions = ref({
       cell.style.cursor = 'pointer'
       
       cell.addEventListener('click', () => {
-        // 선택된 날짜 저장
-        console.log('전체 이벤트 정보:', info)
-        console.log('이벤트 객체:', info.event)
-        console.log('확장 속성:', info.event.extendedProps)
-        console.log('movie_id:', info.event.extendedProps.movie_id)
-        selectedDate.value = info.event.start
+        // 선택된 날짜를 Date 객체로 저장
+        selectedDate.value = new Date(info.event.start)
+
         
         // 선택된 날짜 스타일링
         const dateCell = cell.closest('.fc-daygrid-day')
         if (dateCell) {
-          // 이전 선택된 날짜의 스타일 제거
           document.querySelectorAll('.fc-daygrid-day.selected').forEach(el => {
             el.classList.remove('selected')
           })
-          // 새로 선택된 날짜에 스타일 추가
           dateCell.classList.add('selected')
         }
 
@@ -137,6 +132,7 @@ const calendarOptions = ref({
         selectedMovieTitle.value = info.event.title
         selectedMoviePoster.value = info.event.extendedProps.poster_path
         selectedMovieComment.value = info.event.extendedProps.comment
+        
         // 모달 열기
         showReviewModal.value = true
       })
@@ -209,7 +205,6 @@ const fetchCalendarData = async (year, month) => {
       // 달력 강제 새로고침
       forceCalendarRefresh()
     }
-    console.log('Calendar Data:', response.data)
   } catch (error) {
     console.error('캘린더 데이터 로드 실패:', error)
   }

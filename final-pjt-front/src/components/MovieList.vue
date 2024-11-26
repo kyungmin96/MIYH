@@ -109,7 +109,8 @@ const searchMovies = async () => {
 
 .movies-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-auto-rows: 500px; /* 높이 자동 조절 */
   gap: 25px;
   padding: 20px 0;
 }
