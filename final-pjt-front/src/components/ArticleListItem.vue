@@ -4,7 +4,7 @@
       <div class="header-left">
         <div class="author-info">
           <div class="author-avatar">
-            {{ article.user.username.charAt(0).toUpperCase() }}
+            {{ article.user.name.charAt(0).toUpperCase() }}
           </div>
           <span class="article-author" @click="goToUserProfile" role="button">
             {{ article.user.name }}
