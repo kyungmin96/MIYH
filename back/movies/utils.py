@@ -131,6 +131,7 @@ def check_korean_holiday(date):
         '0815': ('광복절', '독립운동, 역사'),
         '1003': ('개천절', '한국 역사, 건국'),
         '1009': ('한글날', '한국 문화'),
+        '1225': ('크리스마스', '크리스마스'),
     }
     date_str = date.strftime('%m%d')
     return holidays.get(date_str)
@@ -155,7 +156,7 @@ def get_movie_recommendation(weather, season, time_of_day, previous_tmdb_ids, ho
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "당신은 영화 추천 전문가입니다. TMDB ID로만 응답해주세요."},
+            {"role": "system", "content": "당신은 영화 추천 전문가입니다. TMDB ID로만 응답해주세요. 대중성 보다는 예술성에 좀 더 무게를 두고 추천해주세요."},
             {"role": "user", "content": prompt}
         ]
     )
